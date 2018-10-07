@@ -1,0 +1,101 @@
+Symbol|Security_Description|CUSIP|Security_Type|SIP_Symbol|Old_Symbol|Test_Symbol_Flag|Listed_Exchange|Tape|Unit_Of_Trade|Round_Lot|NYSE_Industry_Code|Shares_Outstanding|Halt_Delay_Reason|Specialist_Clearing_Agent|Specialist_Clearing_Number|Specialist_Post_Number|Specialist_Panel|TradedOnNYSEMKT|TradedOnNASDAQBX|TradedOnNSX|TradedOnFINRA|TradedOnISE|TradedOnEdgeA|TradedOnEdgeX|TradedOnCHX|TradedOnNYSE|TradedOnArca|TradedOnNasdaq|TradedOnCBOE|TradedOnPSX|TradedOnBATSY|TradedOnBATS|TradedOnIEX|Tick_Pilot_Indicator|Effective_Date
+A|Agilent Technologies|00846U101|A|A||N|N|A|4|100|114A|322.72||G|5|8|O|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||19991118
+AA|Alcoa Corporation|013872106|A|AA||N|N|A|4|100|130A|186.18||G|5|8|C|1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||20161018
+AABA|Altaba Inc. Common Stock|021346101|A|AABA||N|Q|C|1|100||873.38||||||1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||
+AAC|AAC Holdings, Inc.|000307108|A|AAC||N|N|A|4|100|122B|23.9||G|5|8|R|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|C|20141002
+AADR|AdvisorShares Dorsey Wright ADR ETF|00768Y206|ETF|AADR||N|P|B|1|100||3.93||||||1|1|0|1|0|0|1|0|0|1|1|0|0|1|1|0||20100721
+AAL|American Airlines Group Inc.|02376R102|A|AAL||N|Q|C|1|100||473.14||||||1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||
+AAMC|Altisource Asset Mgmt Corp|02153X108|A|AAMC||N|A|B|4|100|416A|1.6||CDRG|8430|||1|0|0|0|0|0|1|1|0|0|0|0|0|0|0|0|1|20130912
+AAME|Atlantic American Corp|048209100|A|AAME||N|Q|C|1|100||20.44||||||1|0|0|1|0|0|0|0|1|1|1|0|0|1|0|0|2|
+AAN|Aarons Inc|002535300|A|AAN||N|N|A|4|100|180B|70.08||G|5|8|R|1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1|C|19980320
+AAOI|Applied Optoelectronics, Inc.|03823U102|A|AAOI||N|Q|C|1|100||19.5||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|C|
+AAON|Aaon Inc|000360206|A|AAON||N|Q|C|1|100||52.43||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|1|
+AAP|Advance Auto Parts Inc|00751Y106|A|AAP||N|N|A|4|100|146G|73.98||CDRG|8430|5|B|1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||20011129
+AAPL|Apple Inc.|037833100|A|AAPL||N|Q|C|1|100||5074.01||||||1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||
+AAT|American Assets Trust Inc|024013104|A|AAT||N|N|A|4|100|414A|47.21||CDRG|8430|5|I|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||20110113
+AAU|Almaden Minerals Ltd.|020283305|A|AAU||N|A|B|4|100|130E|101.34||CRYN|0100|||1|1|0|1|0|1|1|0|0|1|1|0|1|1|1|1||20150810
+AAV|Advantage Oil & Gas Ltd|00765F101|A|AAV||N|N|A|4|100|412B|185.96||CDRG|8430|5|H|1|1|0|1|0|1|1|0|1|1|1|0|0|1|1|1|3|20090714
+AAWW|Atlas Air Worldwide Holdings, Inc.|049164205|A|AAWW||N|Q|C|1|100||25.44||||||1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1|2|
+AAXJ|iShares MSCI All Country Asia ex Japan ETF|464288182|ETF|AAXJ||N|Q|C|1|100||63.8||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+AAXN|Axon Enterprise, Inc. Common Stock|05464C101|A|AAXN||N|Q|C|1|100||53.03||||||1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1|C|
+AB|Alliance Bernstein Holding L P|01881G106|A|AB||N|N|A|4|100|416A|96.46||CDRG|8430|5|C|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|2|19880414
+ABAC|Renmin Tianli Group, Inc. Common Shares|G7500A100|A|ABAC||N|Q|C|1|100||7.98||||||1|1|0|1|0|0|1|0|1|1|1|0|0|1|1|0||
+ABAX|Abaxis Inc|002567105|A|ABAX||N|Q|C|1|100||22.7||||||1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1|C|
+ABB|ABB Ltd.|000375204|H|ABB||N|N|A|4|100|180A|2168.15||CDRG|8430|5|M|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||20010406
+ABBV|AbbVie Inc.|00287Y109|A|ABBV||N|N|A|4|100|140A|1587.97||G|5|8|Q|1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||20121210
+ABC|AmerisourceBergen Corporation|03073E105|A|ABC||N|N|A|4|100|140A|219.67||CDRG|8430|5|P|1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||19931216
+ABCB|Ameris Bancorp|03076K108|A|ABCB||N|Q|C|1|100||38.24||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|1|
+ABCD|Cambium Learning Group, Inc.|13201A107|A|ABCD||N|Q|C|1|100||46.67||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|C|
+ABDC|Alcentra Capital Corp|01374T102|A|ABDC||N|Q|C|1|100||14.25||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+ABE|Aberdeen Emerging Markets Smaller Company Opportunities Fund, Inc.|00301T102|P|ABE||N|A|B|4|100|406C|9.71||CRYN|0100|||1|0|0|1|0|0|1|0|0|1|1|0|0|1|0|1||20060511
+ABEO|Abeona Therapeutics Inc. Common Stock|00289Y107|A|ABEO||N|Q|C|1|100||46.78||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|3|
+ABEO W|Abeona Therapeutics Inc. Warrant|00289Y115|C|ABEOW||N|Q|C|1|100||40.93||||||1|0|0|1|0|0|0|0|0|1|1|0|0|0|0|0||
+ABEV|Ambev S.A.|02319V103|H|ABEV||N|N|A|4|100|118C|15717.62||G|5|8|S|1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||20131111
+ABG|Asbury Automotive Group Inc|043436104|A|ABG||N|N|A|4|100|146G|20.91||G|5|6|F|1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1|2|20020314
+ABIL|Ability Inc Ordinary Shares|G8789K108|A|ABIL||N|Q|C|1|100||25.76||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|C|
+ABIO|ARCA biopharma, Inc.|00211Y407|A|ABIO||N|Q|C|1|100||11.75||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|C|
+ABLX|Ablynx NV American Depositary Shares|00372Y105|H|ABLX||N|Q|C|1|100||75.07||||||1|1|0|1|0|1|1|0|0|1|1|0|1|1|1|1||
+ABM|ABM Industries Inc.|000957100|A|ABM||N|N|A|4|100|104C|68.69||G|5|6|F|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|C|19710811
+ABMD|Abiomed Inc|003654100|A|ABMD||N|Q|C|1|100||44.28||||||1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||
+ABR|Arbor Realty Trust Inc|038923108|A|ABR||N|N|A|4|100|412A|61.72||G|5|8|H|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||20040407
+ABR PRA|Arbor Realty Trust, Inc.|038923603|B|ABRpA||N|N|A|4|100|412A|1.55||G|5|8|F|1|0|0|1|0|0|1|0|1|1|0|0|0|1|0|0||20130205
+ABR PRB|Arbor Realty Trust, Inc.|038923702|B|ABRpB||N|N|A|4|100|412A|1.26||G|5|8|F|1|0|0|1|0|0|0|0|0|1|0|0|0|0|0|0||20130513
+ABR PRC|Arbor Realty Trust, Inc.|038923801|B|ABRpC||N|N|A|4|100|412A|.9||G|5|8|F|1|0|0|1|0|0|0|0|0|1|0|0|0|0|0|0||20140228
+ABRN|Arbor Realty Trust, Inc.|038923884|G|ABRN||N|N|A|4|100|412A|2.2||G|5|8|F|1|0|0|1|0|0|0|0|1|1|1|0|0|0|0|0||20140515
+ABT|Abbott Laboratories|002824100|A|ABT||N|N|A|4|100|122A|1746.33||G|5|8|O|1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||19370301
+ABTX|Allegiance Bancshares, Inc.|01748H107|A|ABTX||N|Q|C|1|100||13.23||||||1|1|0|1|0|0|1|0|1|1|1|0|0|1|1|1|2|
+ABUS|Arbutus Biopharma Corporation Common Stock|03879J100|A|ABUS||N|Q|C|1|100||55.05||||||1|1|0|1|0|1|1|0|1|1|1|0|0|1|1|1|3|
+ABX|Barrick Gold|067901108|A|ABX||N|N|A|4|100|130C|1167||G|5|8|C|1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||19870225
+AC|Associated Capital Group, Inc.|045528106|A|AC||N|N|A|4|100|408A|4.45||CDRG|8430|5|P|1|1|0|1|0|1|1|0|1|1|1|0|0|1|1|1|2|20151109
+ACAD|Acadia Pharmaceuticals Inc.|004225108|A|ACAD||N|Q|C|1|100||124.7||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+ACBI|Atlantic Capital Bancshares, Inc. Common Stock|048269203|A|ACBI||N|Q|C|1|100||25.71||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|1|
+ACC|American Campus Communities|024835100|A|ACC||N|N|A|4|100|412A|136.5||G|5|8|I|1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||20040812
+ACCO|ACCO Brand Corp.|00081T108|A|ACCO||N|N|A|4|100|104B|106.41||G|5|8|R|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|3|20050805
+ACER|Acer Therapeutics Inc. Common Stock|00444P108|A|ACER||N|Q|C|1|100||7.37||||||1|1|0|1|0|0|1|0|1|1|1|0|0|1|0|1|C|
+ACER W|Acer Therapeutics Inc. Warrant|00444P116|C|ACERW||N|Q|C|1|100||||||||1|0|0|1|0|0|1|0|1|1|1|0|0|0|1|0||
+ACET|Aceto Corp|004446100|A|ACET||N|Q|C|1|100||30.76||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|C|
+ACFC|Atlantic Coast Financial Corporation|048426100|A|ACFC||N|Q|C|1|100||15.55||||||1|1|0|1|0|0|1|0|1|1|1|0|1|1|1|1|C|
+ACGL|Arch Capital Group Ltd|G0450A105|A|ACGL||N|Q|C|1|100||131.01||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+ACGL O|Arch Capital Group Ltd. Depositary Shares Each Representing 1/1,000th Interest in a Share of 5.|03939A107|B|ACGLO||N|Q|C|1|100||13.2||||||1|1|0|1|0|0|1|0|1|1|1|0|1|1|1|1||
+ACGL P|Arch Capital Group Ltd. Depositary Shares Representing Interest in 5.25% Non-Cumulative Preferr|03939A206|B|ACGLP||N|Q|C|1|100||18||||||1|1|0|1|0|1|1|0|1|1|1|0|1|0|1|0||
+ACH|Aluminum Corp Of China Limited|022276109|H|ACH||N|N|A|4|100|130A|3943.97||CDRG|8430|5|H|1|1|0|1|0|1|1|0|1|1|1|0|0|1|1|1||20011211
+ACHC|Acadia Healthcare Company, Inc.|00404A109|A|ACHC||N|Q|C|1|100||87.95||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+ACHN|Achillion Pharmaceuticals, Inc.|00448Q201|A|ACHN||N|Q|C|1|100||137.89||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+ACHV|Achieve Life Sciences, Inc.|004468104|A|ACHV||N|Q|C|1|100||12.75||||||1|1|0|1|0|1|1|0|1|1|1|0|0|1|1|0||
+ACIA|Acacia Communications, Inc. Common Stock|00401C108|A|ACIA||N|Q|C|1|100||39.86||||||1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||
+ACIM|SPDR MSCI ACWI IMI ETF|78463X475|ETF|ACIM||N|P|B|1|100||1.2||||||1|0|0|1|0|0|0|0|0|1|0|0|0|1|0|0||20120228
+ACIU|AC Immune SA|H00263105|A|ACIU||N|Q|C|1|100||56.92||||||1|1|0|1|0|0|1|0|1|1|1|0|1|1|1|1||
+ACIW|ACI Worldwide, Inc.|004498101|A|ACIW||N|Q|C|1|100||115.91||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|C|
+ACLS|Axcelis Technologies Inc|054540208|A|ACLS||N|Q|C|1|100||32.05||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|2|
+ACM|AECOM|00766T100|A|ACM||N|N|A|4|100|110B|159.17||G|5|8|G|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||20070510
+ACMR|ACM Research, Inc. Class A Common Stock|00108J109|A|ACMR||N|Q|C|1|100||12.94||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+ACN|Accenture Plc|G1151C101|A|ACN||N|N|A|4|100|108A|642.55||CDRG|8430|5|J|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||20090901
+ACNB|ACNB Corp|000868109|A|ACNB||N|Q|C|1|100||7.02||||||1|1|0|1|0|0|1|0|1|1|1|0|0|1|0|1|1|
+ACOR|Acorda Therapeutics, Inc.|00484M106|A|ACOR||N|Q|C|1|100||46.91||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|1|
+ACP|Aberdeen Income Crd Strategies|003057106|P|ACP||N|N|A|4|100|406C|13.07||CDRG|8430|5|N|1|1|0|1|0|0|1|0|1|1|1|0|0|0|1|1||20110127
+ACRE|Ares Commercial Real Estate Corp|04013V108|A|ACRE||N|N|A|4|100|400A|28.6||CDRG|8430|5|C|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||20120426
+ACRS|Aclaris Therapeutics, Inc.|00461U105|A|ACRS||N|Q|C|1|100||30.84||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|C|
+ACRX|AcelRx Pharmaceuticals, Inc|00444T100|A|ACRX||N|Q|C|1|100||50.34||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|2|
+ACSF|American Capital Senior Floating, Ltd.|02504D108|A|ACSF||N|Q|C|1|100||10||||||1|1|0|1|0|1|1|0|1|1|1|0|0|1|1|0|2|
+ACSI|American Customer Satisfaction Core Alpha ETF|26922A776|ETF|ACSI||N|Z|B|1|100||1.5||||||1|0|0|1|0|0|0|0|0|1|1|0|0|0|1|0||
+ACST|Acasti Pharma, Inc.|00430K402|A|ACST||N|Q|C|1|100||25.61||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+ACT|AdvisorShares Vice ETF|00768Y545|ETF|ACT||N|Q|C|1|100||.6||||||1|0|0|1|0|0|1|0|1|1|1|0|0|0|0|0||
+ACTG|Acacia Research Corporation|003881307|A|ACTG||N|Q|C|1|100||50.61||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|2|
+ACU|Acme United Corporation|004816104|A|ACU||N|A|B|4|100|100A|3.37||CDRG|8430|||1|0|0|1|0|0|0|0|0|1|1|0|0|1|0|1|C|19781003
+ACV|AllianzGI Div Inc & Convert Fund|01883J108|P|ACV||N|N|A|4|100|406C|11.2||CDRG|8430|5|M|1|1|0|1|0|0|1|0|1|1|1|0|1|1|1|0||20150522
+ACWF|iShares Edge MSCI Multifactor Global ETF|46434V316|ETF|ACWF||N|P|B|1|100||1.55||||||1|0|0|1|0|1|1|0|0|1|1|0|0|1|1|1||20150430
+ACWI|iShares MSCI ACWI ETF|464288257|ETF|ACWI||N|Q|C|1|100||117.4||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+ACWV|iShares Edge MSCI Min Vol Global ETF|464286525|ETF|ACWV||N|Z|B|1|100||41.6||||||1|1|0|1|0|1|1|0|0|1|1|0|1|1|1|1||
+ACWX|iShares MSCI ACWI ex US ETF|464288240|ETF|ACWX||N|Q|C|1|100||63.8||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+ACXM|Acxiom Corp|005125109|A|ACXM||N|Q|C|1|100||79.19||||||1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1|C|
+ACY|AeroCentury Corporation|007737109|A|ACY||N|A|B|4|100|408A|1.42||CRYN|0100|||1|0|0|1|0|0|0|0|0|1|0|0|0|0|0|0|2|19980116
+ADAP|Adaptimmune Therapeutics plc American Depositary Shares|00653A107|H|ADAP||N|Q|C|1|100||562.12||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+ADBE|Adobe Systems Inc|00724F101|A|ADBE||N|Q|C|1|100||491.58||||||1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||
+ADC|Agree Realty|008492100|A|ADC||N|N|A|4|100|412A|29.09||CDRG|8430|5|N|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||19940415
+ADES|Advanced Emissions Solutions, Inc|00770C101|A|ADES||N|Q|C|1|100||21.09||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+ADI|Analog Devices, Inc.|032654105|A|ADI||N|Q|C|1|100||369.8||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||
+ADM|Archer Daniels Midland|039483102|A|ADM||N|N|A|4|100|118C|558.84||CDRG|8430|5|L|1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1||19241224
+ADMA|ADMA Biologics, Inc.|000899104|A|ADMA||N|Q|C|1|100||36.73||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|C|
+ADMP|Adamis Pharmaceuticals Corporation|00547W208|A|ADMP||N|Q|C|1|100||33.39||||||1|1|0|1|0|1|1|0|1|1|1|0|1|1|1|1|3|
+ADMS|Adamas Pharmaceuticals, Inc.|00548A106|A|ADMS||N|Q|C|1|100||26.81||||||1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1|C|
+ADNT|Adient plc|G0084W101|A|ADNT||N|N|A|4|100|132B|93.35||CDRG|8430|5|B|1|1|0|1|0|1|1|1|1|1|1|0|1|1|1|1||20161017
