@@ -1,0 +1,29 @@
+language: cpp
+
+dist: xenial
+sudo: required
+
+matrix:
+  include:
+    - os: linux
+    # OSX is failing with illegal instruction, disabling for now
+    #- os: osx
+
+before_install:
+    - source ci/ci_install_tiledb.sh
+
+install:
+    - mkdir build
+    - pushd build
+    - cmake ..
+    - make -j2
+    - popd
+
+script:
+    - mkdir test_arrays
+    - ./build/NYSE_Ingestor --array "./test_arrays/master" --type Master --create
+    - ./build/NYSE_Ingestor --array "./test_arrays/quote" --type Quote --create
+    - ./build/NYSE_Ingestor --array "./test_arrays/trade" --type Trade --create
+    - ./build/NYSE_Ingestor --array "./test_arrays/master" --type Master --file "./sample_data/small_EQY_US_ALL_REF_MASTER_20180306"
+    - ./build/NYSE_Ingestor --array "./test_arrays/quote" --type Quote --file "./sample_data/small_SPLITS_US_ALL_BBO_Z_20180730"
+    - ./build/NYSE_Ingestor --array "./test_arrays/trade" --type Trade --file "./sample_data/small_EQY_US_ALL_TRADE_20180730"
