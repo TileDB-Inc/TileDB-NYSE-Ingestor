@@ -125,39 +125,12 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize
         fieldLookup.emplace(field, fieldIndex);
     }
 
-    tiledb_datatype_t domainType = arraySchema.domain().type();
-    buffers.emplace(TILEDB_COORDS, std::make_shared<buffer>(buffer{nullptr, createBuffer(domainType), domainType}));
-
-    // Check to see if all attributes are in file being loaded
-    for (std::pair<const std::string, tiledb::Attribute> &entry : arraySchema.attributes()) {
-        // First check to see if attribute is in static map
-        if(staticColumns.find(entry.first) != staticColumns.end())
-            continue;
-
-        bool found = false;
-        for (const std::string &field : headerFields) {
-            if (field == entry.first) {
-                found = true;
-                break;
-            }
-        }
-        if (!found) {
-            std::cerr << "Attribute " << entry.first << " is not present in data file! Aborting loading" << std::endl;
-            return -1;
-        }
-        tiledb_datatype_t type = entry.second.type();
-        std::shared_ptr<void> valueBuffer = createBuffer(type);
-        if (entry.second.variable_sized()) {
-            buffers.emplace(entry.first, std::make_shared<buffer>(buffer{std::static_pointer_cast<std::vector<uint64_t>>(createBuffer(TILEDB_UINT64)), valueBuffer, type}));
-        } else {
-            buffers.emplace(entry.first, std::make_shared<buffer>(buffer{nullptr, valueBuffer, type}));
-        }
-    }
+    initBuffers(headerFields);
 
     // Check to see if all dimensions are in file being loaded
     for (const std::string &dimension : dimensionFields) {
         // First check to see if dimension is in static map
-        if(staticColumns.find(dimension) != staticColumns.end())
+        if(staticColumns.find(dimension) != staticColumns.end() || dimension == "symbol_id")
             continue;
 
         bool found = false;
@@ -178,11 +151,12 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize
     unsigned long totalRows = 0;
     unsigned long expectedFields = dimensionFields.size() - staticColumns.size() + arraySchema.attribute_num();
     for (std::string line; std::getline(is, line);) {
-        if (line.substr(0,3) == "END") {
+        std::vector<std::string> fields = split(line, delimiter);
+        // Trade and quote have a special end file line
+        if (line.substr(0,3) == "END" && fields.size() !=  expectedFields) {
             break;
         }
         totalRows++;
-        std::vector<std::string> fields = split(line, delimiter);
         if (fields.size() !=  expectedFields) {
             std::cerr << "Line " << totalRows << " is missing fields! Line has " << fields.size() << " expected " << expectedFields << std::endl;
         }
@@ -196,12 +170,13 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize
         }
 
         for(const tiledb::Dimension &dimension : arraySchema.domain().dimensions()) {
-            dimensionFields.emplace(dimension.name());
             std::string value;
             auto fieldLookupEntry = fieldLookup.find(dimension.name());
             if (fieldLookupEntry != fieldLookup.end()) {
                 int fieldIndex = fieldLookupEntry->second;
                 value = fields[fieldIndex];
+            } else if (dimension.name() == "symbol_id") {
+                value = std::to_string(totalRows);
             } else {
                 value = staticColumns.find(dimension.name())->second;
             }
@@ -228,10 +203,7 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize
 
     array->close();
 
-    //std::chrono::steady_clock::duration duration = std::chrono::steady_clock::now() - startTime;
-    //std::cout << "loaded " << totalRows << " in  " << beautify_duration(std::chrono::duration_cast<std::chrono::seconds>(duration)) << std::endl;
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
-    //std::cout << "loaded " << totalRows << " in  " << beautify_duration(duration) << "(" << ((float)totalRows) / duration.count() << ")" << std::endl;
     printf("loaded %ld rows in %s (%.2f rows/second)\n",totalRows, beautify_duration(duration).c_str(), (float(totalRows)) / duration.count());
 
     if (arraySchema.array_type() == tiledb_array_type_t::TILEDB_SPARSE) {
@@ -245,8 +217,8 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize
     //buff.close();
     is.close();
     return 0;
-}
 
+}
 void nyse::Array::appendBuffer(const std::string &fieldName, const std::string &valueConst, std::shared_ptr<buffer> buffer) {
     std::string value = valueConst;
     // Right now missing values are set to -1 because -1 is not valid in NYSE data set
