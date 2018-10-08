@@ -93,13 +93,13 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    nyse::Array *array;
+    std::unique_ptr<nyse::Array> array;
     if (fileType == FileType::Master) {
-        array = new nyse::Master(arrayUri);
+        array = std::make_unique<nyse::Master>(arrayUri);
     } else if (fileType == FileType::Quote) {
-        array = new nyse::Quote(arrayUri);
+        array = std::make_unique<nyse::Quote>(arrayUri);
     } else if (fileType == FileType::Trade) {
-        array = new nyse::Trade(arrayUri);
+        array = std::make_unique<nyse::Trade>(arrayUri);
     }
     if (createArray) {
         array->createArray();
