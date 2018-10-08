@@ -53,7 +53,7 @@ void nyse::Master::createArray() {
     // The array will be 10000 with dimensions "symbol_id" and extent of 100
     tiledb::Domain domain(ctx);
     // Setting dimension from 0 to 10k as there are 8614
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(ctx, "symbol_id", {{1, 10000}}, 100));
+    domain.add_dimension(tiledb::Dimension::create<int32_t>(ctx, "symbol_id", {{1, 10000}}, 100));
 
     // The array will be dense.
     tiledb::ArraySchema schema(ctx, TILEDB_DENSE);

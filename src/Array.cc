@@ -36,6 +36,12 @@
 #include <tiledb/tiledb>
 #include <CLI11.hpp>
 #include <chrono>
+#include <ProgressBar.hpp>
+#include <utils.h>
+
+#ifdef __LINUX__
+#include <sys/ioctl.h>
+#endif
 
 std::vector<std::string> nyse::Array::parserHeader(std::string headerLine, char delimiter) {
     return split(headerLine, delimiter);
@@ -105,6 +111,11 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize
     std::ifstream is(file_uri);
     if (!is.good()) throw std::runtime_error("Error opening " + file_uri);
 
+    // Get number of lines for progressbar
+    std::cout << "Getting number of lines in file: " << file_uri << std::endl;
+    long linesInFile = std::count(std::istreambuf_iterator<char>(is),
+                            std::istreambuf_iterator<char>(), '\n');
+    is.seekg (0, std::ios::beg);
 
     // Read all contents from the file
     std::string headerLine;
@@ -146,10 +157,22 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize
         }
     }
 
+    uint32_t windowSize = 70;
+#ifdef __LINUX__
+    struct winsize size;
+    ioctl(STDOUT_FILENO,TIOCGWINSZ,&size);
+    windowSize = size.ws_row;
+    std::cout << "window size: " << windowSize << std::endl;
+#endif
+
+    // Create progress bar
+    ProgressBar progressBar(linesInFile-1, windowSize);
+
     auto startTime = std::chrono::steady_clock::now();
     int rowsParsed = 0;
     unsigned long totalRows = 0;
     unsigned long expectedFields = dimensionFields.size() - staticColumns.size() + arraySchema.attribute_num();
+    std::cout << "starting loading for " << file_uri << " which is " << linesInFile <<  " rows using batch size " << batchSize << std::endl;
     for (std::string line; std::getline(is, line);) {
         std::vector<std::string> fields = split(line, delimiter);
         // Trade and quote have a special end file line
@@ -192,6 +215,8 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize
             rowsParsed = 0;
             initBuffers(headerFields);
         }
+        ++progressBar;
+        progressBar.display();
     }
 
 
@@ -202,6 +227,8 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize
     query->finalize();
 
     array->close();
+
+    progressBar.done();
 
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
     printf("loaded %ld rows in %s (%.2f rows/second)\n",totalRows, beautify_duration(duration).c_str(), (float(totalRows)) / duration.count());

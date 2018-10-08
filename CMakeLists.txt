@@ -7,7 +7,7 @@ project(NYSE_Ingestor)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(NYSE_Ingestor src/main.cc src/Master.cc src/Quote.cc src/Trade.cc src/Array.cc src/buffer.h)
+add_executable(NYSE_Ingestor src/main.cc src/Master.cc src/Quote.cc src/Trade.cc src/Array.cc)
 
 target_include_directories(NYSE_Ingestor PUBLIC src)
 
