@@ -70,7 +70,7 @@ void nyse::Trade::createArray() {
     domain.add_dimension(tiledb::Dimension::create<uint64_t>(ctx, "Sequence_Number", {{0, UINT64_MAX - 1}}, UINT64_MAX));
 
     // The array will be dense.
-    tiledb::ArraySchema schema(ctx, TILEDB_DENSE);
+    tiledb::ArraySchema schema(ctx, TILEDB_SPARSE);
     schema.set_domain(domain).set_order({{TILEDB_ROW_MAJOR, TILEDB_ROW_MAJOR}});
 
     // Set compression filter to ZSTD
