@@ -12,4 +12,4 @@ add_executable(NYSE_Ingestor src/main.cc src/Master.cc src/Quote.cc src/Trade.cc
 target_include_directories(NYSE_Ingestor PUBLIC src)
 
 find_package(TileDB REQUIRED)
-target_link_libraries(NYSE_Ingestor TileDB::tiledb_shared)
+target_link_libraries(NYSE_Ingestor TileDB::tiledb_shared dl)
