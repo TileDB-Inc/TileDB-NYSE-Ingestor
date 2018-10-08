@@ -35,7 +35,7 @@
 #include <tiledb/tiledb>
 
 nyse::Trade::Trade(std::string array_name) {
-    this->array_uri = array_name;
+    this->array_uri = std::move(array_name);
 }
 
 std::vector<std::string> nyse::Trade::parserHeader(std::string headerLine, char delimiter) {
@@ -55,16 +55,15 @@ void nyse::Trade::createArray() {
     if (tiledb::Object::object(ctx, array_uri).type() == tiledb::Object::Type::Array)
         return;
 
-    // The array will be 10000 with dimensions "symbol_id" and extent of 100
     tiledb::Domain domain(ctx);
     // time
     //domain.add_dimension(tiledb::Dimension::create<uint64_t>(ctx, "datetime", {{0, UINT64_MAX - 1}}, 1000000000*60));
 
     // Store up to 2 years of data in array
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(ctx, "date", {{1, 365*2}}, 31));
+    domain.add_dimension(tiledb::Dimension::create<uint64_t>(ctx, "date", {{1, 20381231}}, 31));
 
     // Nanoseconds since midnight
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(ctx, "Time", {{0UL, 1000000000UL * 60 * 60 *24}}, 1000000000UL * 60));
+    domain.add_dimension(tiledb::Dimension::create<uint64_t>(ctx, "Time", {{0UL, 235959000000000UL}}, 1000000000UL * 60)); // HHMMSSXXXXXXXXX
 
     // Sequence_Number
     domain.add_dimension(tiledb::Dimension::create<uint64_t>(ctx, "Sequence_Number", {{0, UINT64_MAX - 1}}, UINT64_MAX));

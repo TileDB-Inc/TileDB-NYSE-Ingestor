@@ -39,7 +39,7 @@
 
 
 nyse::Master::Master(std::string array_name) {
-    this->array_uri = array_name;
+    this->array_uri = std::move(array_name);
 }
 
 void nyse::Master::createArray() {
