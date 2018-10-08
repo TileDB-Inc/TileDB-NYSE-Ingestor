@@ -83,12 +83,12 @@ std::shared_ptr<void> nyse::createBuffer(tiledb_datatype_t datatype) {
 }
 
 int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize) {
-    tiledb::Context ctx;
+    ctx = std::make_unique<tiledb::Context>();
     //tiledb::VFS vfs(ctx);
     //tiledb::VFS::filebuf buff(vfs);
 
-    array = std::make_unique<tiledb::Array>(ctx, array_uri, tiledb_query_type_t::TILEDB_WRITE);
-    query = std::make_unique<tiledb::Query>(ctx, *array);
+    array = std::make_unique<tiledb::Array>(*ctx, array_uri, tiledb_query_type_t::TILEDB_WRITE);
+    query = std::make_unique<tiledb::Query>(*ctx, *array);
 
     query->set_layout(tiledb_layout_t::TILEDB_UNORDERED);
 
@@ -236,7 +236,7 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize
 
     if (arraySchema.array_type() == tiledb_array_type_t::TILEDB_SPARSE) {
         startTime = std::chrono::steady_clock::now();
-        array->consolidate(ctx, array_uri);
+        array->consolidate(*ctx, array_uri);
 
         duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
         printf("consolidated in %s\n", beautify_duration(duration).c_str());

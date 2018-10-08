@@ -113,6 +113,13 @@ namespace nyse {
 
     class Array {
     public:
+
+        ~Array() {
+            query.reset(nullptr);
+            array.reset(nullptr);
+            ctx.reset(nullptr);
+        }
+
         /**
          * Load a data file into array, this function is generic and works for everything except master data which we should collapse here
          * @param file_uri where data is located
@@ -169,6 +176,8 @@ namespace nyse {
         std::string array_uri;
         std::unique_ptr<tiledb::Array> array;
         std::unique_ptr<tiledb::Query> query;
+        std::unique_ptr<tiledb::Context> ctx;
+
         // Static columns allows defining a constant value for a given column for all rows, i.e. date.
         std::unordered_map<std::string, std::string> staticColumns;
         std::unordered_map<std::string, std::shared_ptr<buffer>> buffers;

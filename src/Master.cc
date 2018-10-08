@@ -155,12 +155,12 @@ void nyse::Master::createArray() {
 
 
 int nyse::Master::load(const std::string &file_uri, char delimiter, int batchSize) {
-    tiledb::Context ctx;
+    ctx = std::make_unique<tiledb::Context>();
     //tiledb::VFS vfs(ctx);
     //tiledb::VFS::filebuf buff(vfs);
 
-    array = std::make_unique<tiledb::Array>(ctx, array_uri, tiledb_query_type_t::TILEDB_WRITE);
-    query = std::make_unique<tiledb::Query>(ctx, *array);
+    array = std::make_unique<tiledb::Array>(*ctx, array_uri, tiledb_query_type_t::TILEDB_WRITE);
+    query = std::make_unique<tiledb::Query>(*ctx, *array);
 
     query->set_layout(tiledb_layout_t::TILEDB_UNORDERED);
 
