@@ -176,7 +176,7 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize
     for (std::string line; std::getline(is, line);) {
         std::vector<std::string> fields = split(line, delimiter);
         // Trade and quote have a special end file line
-        if (line.substr(0,3) == "END" && fields.size() !=  expectedFields) {
+        if (totalRows == linesInFile - 2 && line.substr(0,3) == "END") {
             break;
         }
         totalRows++;
