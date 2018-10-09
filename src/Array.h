@@ -84,7 +84,7 @@ namespace nyse {
          * @param batchSize how many rows to load at once
          * @return  status
          */
-        virtual int load(const std::string &file_uri, char delimiter, int batchSize);
+        virtual int load(const std::string &file_uri, char delimiter, uint64_t batchSize);
 
 
         virtual void createArray() = 0;

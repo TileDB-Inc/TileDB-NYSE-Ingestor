@@ -55,7 +55,7 @@ namespace nyse {
          * @param batchSize how many rows to load at once
          * @return status
          */
-        int load(const std::string &file_uri, char delimiter, int batchSize) override;
+        int load(const std::string &file_uri, char delimiter, uint64_t batchSize) override;
     };
 }
 

@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
     bool createArray = false;
     app.add_flag("-c,--create", createArray, "create array and exit");
 
-    int batchSize = 10000;
+    uint64_t batchSize = 10000;
     app.add_option("-b,--batch", batchSize, "batch size for bulk loading");
 
     bool consolidate = false;
@@ -117,9 +117,8 @@ int main(int argc, char** argv) {
 
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
         printf("consolidated in %s\n", nyse::beautify_duration(duration).c_str());
+        return 0;
     }
 
-    array->load(filename, delimiter.c_str()[0], batchSize);
-
-    return 0;
+    return array->load(filename, delimiter.c_str()[0], batchSize);
 }

@@ -153,7 +153,7 @@ void nyse::Master::createArray() {
     tiledb::Array::create(array_uri, schema);
 }
 
-int nyse::Master::load(const std::string &file_uri, char delimiter, int batchSize) {
+int nyse::Master::load(const std::string &file_uri, char delimiter, uint64_t batchSize) {
     auto fileSplits = split(file_uri, '_');
     this->staticColumns.emplace("fake", fileSplits.back());
     Array::load(file_uri, delimiter, batchSize);

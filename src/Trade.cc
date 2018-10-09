@@ -106,7 +106,7 @@ void nyse::Trade::createArray() {
     tiledb::Array::create(array_uri, schema);
 }
 
-int nyse::Trade::load(const std::string &file_uri, char delimiter, int batchSize) {
+int nyse::Trade::load(const std::string &file_uri, char delimiter, uint64_t batchSize) {
     auto fileSplits = split(file_uri, '_');
     this->staticColumns.emplace("date", fileSplits.back());
     return Array::load(file_uri, delimiter, batchSize);

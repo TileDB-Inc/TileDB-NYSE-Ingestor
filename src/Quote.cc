@@ -109,7 +109,7 @@ void nyse::Quote::createArray() {
     tiledb::Array::create(array_uri, schema);
 }
 
-int nyse::Quote::load(const std::string &file_uri, char delimiter, int batchSize) {
+int nyse::Quote::load(const std::string &file_uri, char delimiter, uint64_t batchSize) {
     auto fileSplits = split(file_uri, '_');
     this->staticColumns.emplace("date", fileSplits.back());
     Array::load(file_uri, delimiter, batchSize);

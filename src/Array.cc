@@ -88,7 +88,7 @@ std::shared_ptr<void> nyse::createBuffer(tiledb_datatype_t datatype) {
     }
 }
 
-int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize) {
+int nyse::Array::load(const std::string &file_uri, char delimiter, uint64_t batchSize) {
     ctx = std::make_unique<tiledb::Context>();
     //tiledb::VFS vfs(ctx);
     //tiledb::VFS::filebuf buff(vfs);
