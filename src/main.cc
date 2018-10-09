@@ -38,7 +38,7 @@
 #include "Master.h"
 #include "Quote.h"
 #include "Trade.h"
-
+#include "utils.h"
 
 enum class FileType : int { UNKNOWN, Master, Quote, Trade };
 
@@ -81,6 +81,9 @@ int main(int argc, char** argv) {
     int batchSize = 10000;
     app.add_option("-b,--batch", batchSize, "batch size for bulk loading");
 
+    bool consolidate = false;
+    app.add_flag("--consolidate", consolidate, "Consolidate array");
+
     CLI11_PARSE(app, argc, argv);
 
     if (filename.empty() && !createArray) {
@@ -105,6 +108,17 @@ int main(int argc, char** argv) {
         array->createArray();
         return 0;
     }
+
+
+    if (consolidate) {
+        auto startTime = std::chrono::steady_clock::now();
+        tiledb::Context ctx;
+        tiledb::Array::consolidate(ctx, arrayUri);
+
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
+        printf("consolidated in %s\n", nyse::beautify_duration(duration).c_str());
+    }
+
     array->load(filename, delimiter.c_str()[0], batchSize);
 
     return 0;

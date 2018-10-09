@@ -233,14 +233,6 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, int batchSize
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
     printf("loaded %ld rows in %s (%.2f rows/second)\n",totalRows, beautify_duration(duration).c_str(), (float(totalRows)) / duration.count());
 
-    if (arraySchema.array_type() == tiledb_array_type_t::TILEDB_SPARSE) {
-        startTime = std::chrono::steady_clock::now();
-        array->consolidate(*ctx, array_uri);
-
-        duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
-        printf("consolidated in %s\n", beautify_duration(duration).c_str());
-    }
-
     //buff.close();
     is.close();
     return 0;
