@@ -72,6 +72,9 @@ void nyse::Trade::createArray() {
     tiledb::ArraySchema schema(ctx, TILEDB_SPARSE);
     schema.set_domain(domain).set_order({{TILEDB_ROW_MAJOR, TILEDB_ROW_MAJOR}});
 
+    // Set array capacity
+    schema.set_capacity(10000000);
+
     // Set compression filter to ZSTD
     tiledb::FilterList filters(ctx);
     tiledb::Filter compressor(ctx, TILEDB_FILTER_ZSTD);
