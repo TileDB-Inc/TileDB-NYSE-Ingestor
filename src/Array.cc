@@ -89,7 +89,9 @@ std::shared_ptr<void> nyse::createBuffer(tiledb_datatype_t datatype) {
 }
 
 int nyse::Array::load(const std::string &file_uri, char delimiter, uint64_t batchSize) {
-    ctx = std::make_unique<tiledb::Context>();
+    tiledb::Config config;
+    config.set("sm.dedup_coords", "true");
+    ctx = std::make_unique<tiledb::Context>(config);
     //tiledb::VFS vfs(ctx);
     //tiledb::VFS::filebuf buff(vfs);
 
@@ -236,8 +238,8 @@ int nyse::Array::load(const std::string &file_uri, char delimiter, uint64_t batc
     //buff.close();
     is.close();
     return 0;
-
 }
+
 void nyse::Array::appendBuffer(const std::string &fieldName, const std::string &valueConst, std::shared_ptr<buffer> buffer) {
     std::string value = valueConst;
     // Right now missing values are set to -1 because -1 is not valid in NYSE data set
