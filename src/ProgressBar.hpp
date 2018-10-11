@@ -13,18 +13,24 @@ private:
     const unsigned int bar_width;
     const char complete_char = '=';
     const char incomplete_char = ' ';
+    std::string label;
     const std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 
 public:
-    ProgressBar(unsigned int total, unsigned int width, char complete, char incomplete) :
-            total_ticks {total}, bar_width {width}, complete_char {complete}, incomplete_char {incomplete} {}
+    ProgressBar(std::string label, unsigned int total, unsigned int width, char complete, char incomplete) :
+            label {label}, total_ticks {total}, bar_width {width},
+            complete_char {complete}, incomplete_char {incomplete} {}
 
-    ProgressBar(unsigned int total, unsigned int width) : total_ticks {total}, bar_width {width} {}
+    ProgressBar(std::string label, unsigned int total, unsigned int width) :
+            label {label}, total_ticks {total}, bar_width {width} {}
 
     unsigned int operator++() { return ++ticks; }
 
     void display() const
     {
+        // Only update for each percentage
+
+        if ( (ticks != total_ticks) && (ticks % (total_ticks/100+1) != 0) ) return;
         float progress = (float) ticks / total_ticks;
         int pos = (int) (bar_width * progress);
 
@@ -32,7 +38,7 @@ public:
         auto time_elapsed = std::chrono::duration_cast<std::chrono::seconds>(now-start_time).count();
 
         auto rate = static_cast<double>(ticks) / time_elapsed;
-        std::cout << "[";
+        std::cout << label <<  " [";
 
         for (int i = 0; i < bar_width; ++i) {
             if (i < pos) std::cout << complete_char;

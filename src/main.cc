@@ -35,6 +35,7 @@
 #include <sstream>
 #include <tiledb/tiledb>
 #include <CLI11.hpp>
+#include <thread>
 #include "Master.h"
 #include "Quote.h"
 #include "Trade.h"
@@ -72,7 +73,7 @@ int main(int argc, char** argv) {
     app.add_option("-d,--delimiter", delimiter, "delimiter used in file", false);
 
     FileType fileType;
-    app.add_set("-t,--type", fileType, {FileType::Master, FileType::Trade, FileType::Quote}, "File type to ingest")
+    app.add_set("--type", fileType, {FileType::Master, FileType::Trade, FileType::Quote}, "File type to ingest")
             ->type_name("FileType in {Master, Quote, Trade}")->required(true);
 
     bool createArray = false;
@@ -80,6 +81,9 @@ int main(int argc, char** argv) {
 
     uint64_t batchSize = 10000;
     app.add_option("-b,--batch", batchSize, "batch size for bulk loading");
+
+    uint32_t threads = std::thread::hardware_concurrency();
+    app.add_option("--threads", threads, "Number of threads for loading in parallel");
 
     bool consolidate = false;
     app.add_flag("--consolidate", consolidate, "Consolidate array");
@@ -120,5 +124,5 @@ int main(int argc, char** argv) {
         return 0;
     }
 
-    return array->load(filename, delimiter.c_str()[0], batchSize);
+    return array->load(filename, delimiter.c_str()[0], batchSize, threads);
 }

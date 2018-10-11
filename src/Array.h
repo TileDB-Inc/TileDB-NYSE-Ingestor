@@ -84,7 +84,7 @@ namespace nyse {
          * @param batchSize how many rows to load at once
          * @return  status
          */
-        virtual int load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize);
+        virtual int load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize, uint32_t threads);
 
 
         virtual void createArray() = 0;
@@ -116,6 +116,21 @@ namespace nyse {
         void appendBuffer(const std::string &fieldName, const T value, std::shared_ptr<buffer> buffer);
 
 
+        /**
+         * Parse a file in parallel to a buffer
+         * @param file_uri
+         * @param staticColumns
+         * @param dimensionFields
+         * @param delimiter
+         * @param arraySchema
+         * @return
+         */
+        std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> parseFileToBuffer(std::string file_uri,
+                                                                                         std::unordered_map<std::string, std::string> staticColumns,
+                                                                                         std::set<std::string> dimensionFields,
+                                                                                         char delimiter,
+                                                                                         tiledb::ArraySchema arraySchema);
+
     protected:
         /**
          * Submit query to tiledb for writing
@@ -128,7 +143,7 @@ namespace nyse {
          * @param headerFields
          * @return
          */
-        int initBuffers(std::vector<std::string> headerFields, std::unordered_map<std::string, std::string> staticColumns);
+        std::unordered_map<std::string, std::shared_ptr<buffer>> initBuffers(std::vector<std::string> headerFields, std::unordered_map<std::string, std::string> staticColumns);
 
         std::string array_uri;
         std::unique_ptr<tiledb::Array> array;
@@ -137,7 +152,9 @@ namespace nyse {
 
         // Static columns allows defining a constant value for a given column for all rows, i.e. date.
         std::unordered_map<std::string, std::unordered_map<std::string, std::string>> staticColumnsForFiles;
-        std::unordered_map<std::string, std::shared_ptr<buffer>> buffers;
+        std::unordered_map<std::string, std::shared_ptr<buffer>> globalBuffers;
+
+        void concatBuffers(std::shared_ptr<void> shared_ptr, std::shared_ptr<void> sharedPtr, tiledb_datatype_t datatype);
     };
 }
 

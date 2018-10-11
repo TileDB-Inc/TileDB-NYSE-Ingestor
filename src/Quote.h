@@ -55,7 +55,7 @@ namespace nyse {
          * @param batchSize how many rows to load at once
          * @return status
          */
-        int load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize) override;
+        int load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize, uint32_t threads) override;
     };
 }
 

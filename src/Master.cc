@@ -153,12 +153,12 @@ void nyse::Master::createArray() {
     tiledb::Array::create(array_uri, schema);
 }
 
-int nyse::Master::load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize) {
+int nyse::Master::load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize, uint32_t threads) {
     for (std::string file_uri : file_uris) {
         auto fileSplits = split(file_uri, '_');
         std::unordered_map<std::string, std::string> fileStaticColumns;
         fileStaticColumns.emplace("fake", fileSplits.back());
         this->staticColumnsForFiles.emplace(file_uri, fileStaticColumns);
     }
-    Array::load(file_uris, delimiter, batchSize);
+    Array::load(file_uris, delimiter, batchSize, threads);
 }
