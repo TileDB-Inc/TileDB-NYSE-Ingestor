@@ -79,12 +79,12 @@ namespace nyse {
 
         /**
          * Load a data file into array, this function is generic and works for everything except master data which we should collapse here
-         * @param file_uri where data is located
+         * @param file_uris where data is located
          * @param delimiter of file
          * @param batchSize how many rows to load at once
          * @return  status
          */
-        virtual int load(const std::string &file_uri, char delimiter, uint64_t batchSize);
+        virtual int load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize);
 
 
         virtual void createArray() = 0;
@@ -128,7 +128,7 @@ namespace nyse {
          * @param headerFields
          * @return
          */
-        int initBuffers(std::vector<std::string> headerFields);
+        int initBuffers(std::vector<std::string> headerFields, std::unordered_map<std::string, std::string> staticColumns);
 
         std::string array_uri;
         std::unique_ptr<tiledb::Array> array;
@@ -136,7 +136,7 @@ namespace nyse {
         std::unique_ptr<tiledb::Context> ctx;
 
         // Static columns allows defining a constant value for a given column for all rows, i.e. date.
-        std::unordered_map<std::string, std::string> staticColumns;
+        std::unordered_map<std::string, std::unordered_map<std::string, std::string>> staticColumnsForFiles;
         std::unordered_map<std::string, std::shared_ptr<buffer>> buffers;
     };
 }

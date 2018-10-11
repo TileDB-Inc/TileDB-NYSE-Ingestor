@@ -62,8 +62,8 @@ std::ostream &operator<<(std::ostream &in, const FileType &fileType) { return in
 int main(int argc, char** argv) {
     CLI::App app{"App description"};
 
-    std::string filename;
-    app.add_option("-f,--file", filename, "csv file to load", false);
+    std::vector<std::string> filename;
+    app.add_option("-f,--files", filename, "csv files to load", false);
 
     std::string arrayUri;
     app.add_option("-a,--array,--array_uri", arrayUri, "URI for array loading", false);

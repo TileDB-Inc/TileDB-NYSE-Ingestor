@@ -50,12 +50,12 @@ namespace nyse {
 
         /**
          * Load quote data into array
-         * @param file_uri uri where file is located
+         * @param file_uris uri where file is located
          * @param delimiter delimiter of file
          * @param batchSize how many rows to load at once
          * @return status
          */
-        int load(const std::string &file_uri, char delimiter, uint64_t batchSize) override;
+        int load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize) override;
     };
 }
 

@@ -113,8 +113,12 @@ void nyse::Quote::createArray() {
     tiledb::Array::create(array_uri, schema);
 }
 
-int nyse::Quote::load(const std::string &file_uri, char delimiter, uint64_t batchSize) {
-    auto fileSplits = split(file_uri, '_');
-    this->staticColumns.emplace("date", fileSplits.back());
-    Array::load(file_uri, delimiter, batchSize);
+int nyse::Quote::load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize) {
+    for (std::string file_uri : file_uris) {
+        auto fileSplits = split(file_uri, '_');
+        std::unordered_map<std::string, std::string> fileStaticColumns;
+        fileStaticColumns.emplace("date", fileSplits.back());
+        this->staticColumnsForFiles.emplace(file_uri, fileStaticColumns);
+    }
+    Array::load(file_uris, delimiter, batchSize);
 }
