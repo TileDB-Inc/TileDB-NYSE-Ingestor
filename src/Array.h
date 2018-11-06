@@ -140,7 +140,7 @@ namespace nyse {
         const std::shared_ptr<tiledb::Context> &getCtx() const;
 
         //void read(void *subarray);
-        //virtual void readSample() = 0;
+        virtual uint64_t readSample() = 0;
 
     protected:
         /**
@@ -170,7 +170,7 @@ namespace nyse {
 
         void concatOffsets(std::shared_ptr<std::vector<uint64_t>> globalOffsets, std::shared_ptr<std::vector<uint64_t>> bufferOffsets, std::shared_ptr<void> values, tiledb_datatype_t datatype);
 
-        uint64_t buffer_size = 20*1024*1024;
+        uint64_t buffer_size = 40*1024*1024;
     };
 }
 

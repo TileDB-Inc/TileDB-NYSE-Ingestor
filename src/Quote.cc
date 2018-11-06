@@ -91,7 +91,7 @@ void nyse::Quote::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
     tiledb::Attribute Bid_Price = tiledb::Attribute::create<double>(*ctx, "Bid_Price").set_filter_list(attribute_filter_list);
     tiledb::Attribute Bid_Size = tiledb::Attribute::create<uint32_t>(*ctx, "Bid_Size").set_filter_list(attribute_filter_list);
     tiledb::Attribute Offer_Price = tiledb::Attribute::create<double>(*ctx, "Offer_Price").set_filter_list(attribute_filter_list);
-    tiledb::Attribute Offer_Size = tiledb::Attribute::create<uint64_t>(*ctx, "Offer_Size").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Offer_Size = tiledb::Attribute::create<uint32_t>(*ctx, "Offer_Size").set_filter_list(attribute_filter_list);
     tiledb::Attribute Quote_Condition = tiledb::Attribute::create<char>(*ctx, "Quote_Condition").set_filter_list(attribute_filter_list);
     tiledb::Attribute National_BBO_Ind = tiledb::Attribute::create<char>(*ctx, "National_BBO_Ind").set_filter_list(attribute_filter_list); // This is listed as numeric but it is alphanumeric (but only a single char)
     tiledb::Attribute FINRA_BBO_Indicator = tiledb::Attribute::create<char>(*ctx, "FINRA_BBO_Indicator").set_filter_list(attribute_filter_list);
@@ -131,4 +131,107 @@ int nyse::Quote::load(const std::vector<std::string> file_uris, char delimiter, 
         this->staticColumnsForFiles.emplace(file_uri, fileStaticColumns);
     }
     Array::load(file_uris, delimiter, batchSize, threads);
+}
+
+uint64_t nyse::Quote::readSample() {
+    uint64_t rows_read = 0;
+    array = std::make_unique<tiledb::Array>(*ctx, array_uri, tiledb_query_type_t::TILEDB_READ);
+    query = std::make_unique<tiledb::Query>(*ctx, *array);
+
+    query->set_layout(tiledb_layout_t::TILEDB_GLOBAL_ORDER);
+
+    tiledb::ArraySchema arraySchema = array->schema();
+
+    auto nonEmptyDomain = array->non_empty_domain<uint64_t>();
+
+    // 2018-07-30 09:30:00.000 to 2018-07-30 12:30:00.000
+    // Then select the entire domain for sequence number
+    std::vector<uint64_t> subarray = {1532957400000000000, 1532968200000000000, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
+    query->set_subarray(subarray);
+
+    std::vector<uint64_t> coords(this->buffer_size / sizeof(uint64_t));
+    query->set_coordinates(coords);
+
+    std::vector<char> Exchange(this->buffer_size / sizeof(char));
+    query->set_buffer("Exchange", Exchange);
+
+    std::vector<char> Symbol(this->buffer_size / sizeof(char));
+    std::vector<uint64_t> Symbol_offsets(this->buffer_size / sizeof(uint64_t));
+    query->set_buffer("Symbol", Symbol_offsets, Symbol);
+
+    std::vector<double> Bid_Price(this->buffer_size / sizeof(double));
+    query->set_buffer("Bid_Price", Bid_Price);
+
+    std::vector<uint32_t> Bid_Size(this->buffer_size / sizeof(uint32_t));
+    query->set_buffer("Bid_Size", Bid_Size);
+
+    std::vector<double> Offer_Price(this->buffer_size / sizeof(double));
+    query->set_buffer("Offer_Price", Offer_Price);
+
+    std::vector<uint32_t> Offer_Size(this->buffer_size / sizeof(uint32_t));
+    query->set_buffer("Offer_Size", Offer_Size);
+
+    std::vector<char> Quote_Condition(this->buffer_size / sizeof(char));
+    query->set_buffer("Quote_Condition", Quote_Condition);
+
+    std::vector<char> National_BBO_Ind(this->buffer_size / sizeof(char));
+    query->set_buffer("National_BBO_Ind", National_BBO_Ind);
+
+    std::vector<char> FINRA_BBO_Indicator(this->buffer_size / sizeof(char));
+    query->set_buffer("FINRA_BBO_Indicator", FINRA_BBO_Indicator);
+
+    std::vector<uint8_t> FINRA_ADF_MPID_Indicator(this->buffer_size / sizeof(uint8_t));
+    query->set_buffer("FINRA_ADF_MPID_Indicator", FINRA_ADF_MPID_Indicator);
+
+    std::vector<char> Quote_Cancel_Correction(this->buffer_size / sizeof(char));
+    query->set_buffer("Quote_Cancel_Correction", Quote_Cancel_Correction);
+
+    std::vector<char> Source_Of_Quote(this->buffer_size / sizeof(char));
+    query->set_buffer("Source_Of_Quote", Source_Of_Quote);
+
+    std::vector<char> Retail_Interest_Indicator(this->buffer_size / sizeof(char));
+    query->set_buffer("Retail_Interest_Indicator", Retail_Interest_Indicator);
+
+    std::vector<char> Short_Sale_Restriction_Indicator(this->buffer_size / sizeof(char));
+    query->set_buffer("Short_Sale_Restriction_Indicator", Short_Sale_Restriction_Indicator);
+
+    std::vector<char> LULD_BBO_Indicator(this->buffer_size / sizeof(char));
+    query->set_buffer("LULD_BBO_Indicator", LULD_BBO_Indicator);
+
+    std::vector<char> SIP_Generated_Message_Identifier(this->buffer_size / sizeof(char));
+    query->set_buffer("SIP_Generated_Message_Identifier", SIP_Generated_Message_Identifier);
+
+    std::vector<char> National_BBO_LULD_Indicator(this->buffer_size / sizeof(char));
+    query->set_buffer("National_BBO_LULD_Indicator", National_BBO_LULD_Indicator);
+
+    std::vector<uint64_t> Participant_Timestamp(this->buffer_size / sizeof(uint64_t));
+    query->set_buffer("Participant_Timestamp", Participant_Timestamp);
+
+    std::vector<uint64_t> FINRA_ADF_Timestamp(this->buffer_size / sizeof(uint64_t));
+    query->set_buffer("FINRA_ADF_Timestamp", FINRA_ADF_Timestamp);
+
+    std::vector<char> FINRA_ADF_Market_Participant_Quote_Indicator(this->buffer_size / sizeof(char));
+    query->set_buffer("FINRA_ADF_Market_Participant_Quote_Indicator", FINRA_ADF_Market_Participant_Quote_Indicator);
+
+    std::vector<char> Security_Status_Indicator(this->buffer_size / sizeof(char));
+    query->set_buffer("Security_Status_Indicator", Security_Status_Indicator);
+
+    tiledb::Query::Status status;
+    do {
+        // Submit query and get status
+        query->submit();
+        status = query->query_status();
+
+        // If any results were retrieved, parse and print them
+        auto result_num = (int)query->result_buffer_elements()[TILEDB_COORDS].second;
+        rows_read += result_num;
+        if (status == tiledb::Query::Status::INCOMPLETE &&
+            result_num == 0) {  // VERY IMPORTANT!!
+            std::cerr << "Buffers were too small for query, you should fix this, test is invalid" << std::endl;
+            break;
+            //reallocate_buffers(&coords, &a1_data, &a2_off, &a2_data);
+        }
+    } while (status == tiledb::Query::Status::INCOMPLETE);
+
+    return rows_read;
 }

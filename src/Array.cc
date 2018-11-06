@@ -289,7 +289,7 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter, 
         for (auto entry : buffers) {
             std::string bufferName = entry.first;
             if (bufferName == TILEDB_COORDS) {
-                totalRows += sizeof(entry.second->values) / tiledb_datatype_size(entry.second->datatype) / dimensionFields.size();
+                totalRows += std::static_pointer_cast<std::vector<uint64_t>>(entry.second->values)->size() / dimensionFields.size();
             }
             auto globalBuffer = globalBuffers.find(bufferName);
             if (globalBuffer != globalBuffers.end()) {

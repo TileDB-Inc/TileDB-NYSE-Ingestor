@@ -88,6 +88,9 @@ int main(int argc, char** argv) {
     bool consolidate = false;
     app.add_flag("--consolidate", consolidate, "Consolidate array");
 
+    bool readSample = false;
+    app.add_flag("--read", readSample, "read sample data from array for testing");
+
     std::vector<std::string> coordinate_filters;
     app.add_option("--coordinate_filters", coordinate_filters, "List of filters to apply to coordinates", false);
 
@@ -99,8 +102,8 @@ int main(int argc, char** argv) {
 
     CLI11_PARSE(app, argc, argv);
 
-    if (filename.empty() && !createArray) {
-        std::cerr << "Filename is required unless --create is passed" << std::endl;
+    if (filename.empty() && !createArray && !readSample) {
+        std::cerr << "Filename is required unless --create or --read is passed" << std::endl;
         return 0;
     }
 
@@ -143,6 +146,16 @@ int main(int argc, char** argv) {
 
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
         printf("consolidated in %s\n", nyse::beautify_duration(duration).c_str());
+        return 0;
+    }
+
+    if (readSample) {
+        auto startTime = std::chrono::steady_clock::now();
+        uint64_t rows = array->readSample();
+
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
+        printf("read %lu rows in %s (%.2f rows/second)\n", rows, nyse::beautify_duration(duration).c_str(), float(rows) / duration.count());
+
         return 0;
     }
 

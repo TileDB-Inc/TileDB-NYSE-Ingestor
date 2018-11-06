@@ -129,9 +129,9 @@ int nyse::Trade::load(const std::vector<std::string> file_uris, char delimiter, 
     }
     return Array::load(file_uris, delimiter, batchSize, threads);
 }
-/*
 
-void nyse::Trade::readSample() {
+uint64_t nyse::Trade::readSample() {
+    uint64_t rows_read = 0;
     array = std::make_unique<tiledb::Array>(*ctx, array_uri, tiledb_query_type_t::TILEDB_READ);
     query = std::make_unique<tiledb::Query>(*ctx, *array);
 
@@ -139,48 +139,74 @@ void nyse::Trade::readSample() {
 
     tiledb::ArraySchema arraySchema = array->schema();
 
-    auto coords = std::vector<uint64_t>(this->buffer_size);
+    auto nonEmptyDomain = array->non_empty_domain<uint64_t>();
+
+    // 2018-07-30 09:30:00.000 to 2018-07-30 12:30:00.000
+    // Then select the entire domain for sequence number
+    std::vector<uint64_t> subarray = {1532957400000000000, 1532968200000000000, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
+    query->set_subarray(subarray);
+
+    std::vector<uint64_t> coords(this->buffer_size / sizeof(uint64_t));
     query->set_coordinates(coords);
 
-    auto Exchange = std::vector<char>(this->buffer_size);
+    std::vector<char> Exchange(this->buffer_size / sizeof(char));
     query->set_buffer("Exchange", Exchange);
 
-    auto Symbol = std::vector<std::string>(this->buffer_size);
-    auto Symbol_offsets = std::vector<uint64_t>(this->buffer_size);
+    std::vector<char> Symbol(this->buffer_size / sizeof(char));
+    std::vector<uint64_t> Symbol_offsets(this->buffer_size / sizeof(uint64_t));
     query->set_buffer("Symbol", Symbol_offsets, Symbol);
 
-    auto Sale_Condition = std::vector<std::string>(this->buffer_size);
-    auto Sale_Condition_offsets = std::vector<uint64_t>(this->buffer_size);
+    std::vector<char> Sale_Condition(this->buffer_size / sizeof(char));
+    std::vector<uint64_t> Sale_Condition_offsets(this->buffer_size / sizeof(uint64_t));
     query->set_buffer("Sale_Condition", Sale_Condition_offsets, Sale_Condition);
 
-    auto Trade_Volume = std::vector<uint32_t>(this->buffer_size);
+    std::vector<uint32_t> Trade_Volume(this->buffer_size / sizeof(uint32_t));
     query->set_buffer("Trade_Volume", Trade_Volume);
 
-    auto Trade_Price = std::vector<double>(this->buffer_size);
+    std::vector<double> Trade_Price(this->buffer_size / sizeof(double));
     query->set_buffer("Trade_Price", Trade_Price);
 
-    auto Trade_Stop_Stock_Indicator = std::vector<char>(this->buffer_size);
+    std::vector<char> Trade_Stop_Stock_Indicator(this->buffer_size / sizeof(char));
     query->set_buffer("Trade_Stop_Stock_Indicator", Trade_Stop_Stock_Indicator);
 
-    auto Trade_Correction_Indicator = std::vector<uint8_t>(this->buffer_size);
+    std::vector<uint8_t> Trade_Correction_Indicator(this->buffer_size / sizeof(uint8_t));
     query->set_buffer("Trade_Correction_Indicator", Trade_Correction_Indicator);
 
-    auto Trade_Id = std::vector<std::string>(this->buffer_size);
-    auto Trade_Id_offsets = std::vector<uint64_t>(this->buffer_size);
+    std::vector<char> Trade_Id(this->buffer_size / sizeof(char));
+    std::vector<uint64_t> Trade_Id_offsets(this->buffer_size / sizeof(uint64_t));
     query->set_buffer("Trade_Id", Trade_Id_offsets, Trade_Id);
 
-    auto Source_of_Trade = std::vector<char>(this->buffer_size);
+    std::vector<char> Source_of_Trade(this->buffer_size / sizeof(char));
     query->set_buffer("Source_of_Trade", Source_of_Trade);
 
-    auto Trade_Reporting_Facility = std::vector<char>(this->buffer_size);
+    std::vector<char> Trade_Reporting_Facility(this->buffer_size / sizeof(char));
     query->set_buffer("Trade_Reporting_Facility", Trade_Reporting_Facility);
 
-    auto Participant_Timestamp = std::vector<uint64_t>(this->buffer_size);
+    std::vector<uint64_t> Participant_Timestamp(this->buffer_size / sizeof(uint64_t));
     query->set_buffer("Participant_Timestamp", Participant_Timestamp);
 
-    auto Trade_Reporting_Facility_TRF_Timestamp = std::vector<uint64_t>(this->buffer_size);
+    std::vector<uint64_t> Trade_Reporting_Facility_TRF_Timestamp(this->buffer_size / sizeof(uint64_t));
     query->set_buffer("Trade_Reporting_Facility_TRF_Timestamp", Trade_Reporting_Facility_TRF_Timestamp);
 
-    auto Trade_Through_Exempt_Indicator = std::vector<uint8_t>(this->buffer_size);
+    std::vector<uint8_t> Trade_Through_Exempt_Indicator(this->buffer_size / sizeof(uint8_t));
     query->set_buffer("Trade_Through_Exempt_Indicator", Trade_Through_Exempt_Indicator);
-}*/
+
+    tiledb::Query::Status status;
+    do {
+        // Submit query and get status
+        query->submit();
+        status = query->query_status();
+
+        // If any results were retrieved, parse and print them
+        auto result_num = (int)query->result_buffer_elements()[TILEDB_COORDS].second;
+        rows_read += result_num;
+        if (status == tiledb::Query::Status::INCOMPLETE &&
+            result_num == 0) {  // VERY IMPORTANT!!
+            std::cerr << "Buffers were too small for query, you should fix this, test is invalid" << std::endl;
+            break;
+            //reallocate_buffers(&coords, &a1_data, &a2_off, &a2_data);
+        }
+    } while (status == tiledb::Query::Status::INCOMPLETE);
+
+    return rows_read;
+}
