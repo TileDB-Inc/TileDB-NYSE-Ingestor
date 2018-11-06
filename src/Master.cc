@@ -40,7 +40,9 @@
 
 nyse::Master::Master(std::string array_name) {
     this->array_uri = std::move(array_name);
-    this->ctx = std::make_shared<tiledb::Context>();
+    tiledb::Config config;
+    config.set("sm.dedup_coords", "true");
+    this->ctx = std::make_shared<tiledb::Context>(config);
 }
 
 void nyse::Master::createArray(tiledb::FilterList coordinate_filter_list, tiledb::FilterList offset_filter_list,

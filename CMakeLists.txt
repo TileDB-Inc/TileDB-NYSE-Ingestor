@@ -15,4 +15,5 @@ target_include_directories(NYSE_Ingestor PUBLIC src)
 
 find_package(TileDB REQUIRED)
 find_package(Threads REQUIRED)
-target_link_libraries(NYSE_Ingestor TileDB::tiledb_shared dl ${CMAKE_THREAD_LIBS_INIT})
+find_package(date REQUIRED)
+target_link_libraries(NYSE_Ingestor TileDB::tiledb_shared dl ${CMAKE_THREAD_LIBS_INIT} tz)

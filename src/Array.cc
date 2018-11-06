@@ -39,6 +39,7 @@
 #include <ProgressBar.hpp>
 #include <utils.h>
 #include <ThreadPool.h>
+#include <date/tz.h>
 
 #ifdef __LINUX__
 #include <sys/ioctl.h>
@@ -91,14 +92,16 @@ std::shared_ptr<void> nyse::createBuffer(tiledb_datatype_t datatype) {
 
 static std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> staticLoadJob(nyse::Array *array, std::string file_uri,
                                                                                     std::unordered_map<std::string, std::string> staticColumns,
+                                                                                    std::unordered_map<std::string, std::string> ignoreColumns,
                                                                                     std::set<std::string> dimensionFields,
                                                                                     char delimiter,
                                                                                     tiledb::ArraySchema arraySchema) {
-    return array->parseFileToBuffer(file_uri, staticColumns, dimensionFields, delimiter, arraySchema);
+    return array->parseFileToBuffer(file_uri, staticColumns, ignoreColumns, dimensionFields, delimiter, arraySchema);
 }
 
 std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::parseFileToBuffer(std::string file_uri,
         std::unordered_map<std::string, std::string> staticColumns,
+        std::unordered_map<std::string, std::string> ignoreColumns,
         std::set<std::string> dimensionFields,
         char delimiter,
         tiledb::ArraySchema arraySchema) {
@@ -123,7 +126,7 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
     // Validate that there are no extra fields in the file being loaded
     for (int fieldIndex = 0; fieldIndex < headerFields.size(); fieldIndex++) {
         const std::string &field = headerFields[fieldIndex];
-        if (dimensionFields.find(field) == dimensionFields.end()) {
+        if (dimensionFields.find(field) == dimensionFields.end() && field != "Time") {
             if (arraySchema.attribute(field) == nullptr) {
                 std::cerr << field << " does not exists in array (" + array_uri + ")" << std::endl;
                 return buffers;
@@ -165,7 +168,7 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
     ProgressBar progressBar(file_uri, linesInFile - 1, windowSize);
 
     int rowsParsed = 0;
-    unsigned long expectedFields = dimensionFields.size() - staticColumns.size() + arraySchema.attribute_num();
+    unsigned long expectedFields = dimensionFields.size() /*- staticColumns.size()*/ + arraySchema.attribute_num();
     std::cout << "starting parsing for " << file_uri << " which is " << linesInFile << " rows using batch size " << std::endl;
               //<< batchSize << std::endl;
     for (std::string line; std::getline(is, line);) {
@@ -185,6 +188,8 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
             // Skip dimensions
             if (dimensionFields.find(fieldName) != dimensionFields.end())
                 continue;
+            if (fieldName == "Time")
+                continue;
             std::string fieldValue = fields[fieldNum];
             appendBuffer(fieldName, fieldValue, buffers.find(fieldName)->second);
         }
@@ -197,6 +202,29 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
                 value = fields[fieldIndex];
             } else if (dimension.name() == "symbol_id") {
                 value = std::to_string(totalRowsInFile);
+            } else if (dimension.name() == "datetime") {
+                auto timeLookupEntry = fieldLookup.find("Time");
+                if (timeLookupEntry != fieldLookup.end()) {
+                    std::string time = fields[timeLookupEntry->second];
+                    std::string nanoseconds_str = time.substr(time.length()-9, 9);
+                    std::string hms = time.substr(0, time.length()-9);
+                    std::string date = staticColumnsForFiles.find(file_uri)->second.find("date")->second;
+                    std::tm tm = {};
+                    std::string datetime = date + hms + "-0400";
+
+                    date::sys_time<std::chrono::nanoseconds> t;
+                    std::istringstream stream{datetime};
+                    stream >> date::parse("%Y%m%d%H%M%S%z", t);
+                    if (stream.fail())
+                        throw std::runtime_error("failed to parse " + datetime);
+
+
+                    auto nanoseconds = std::chrono::nanoseconds(std::stoll(nanoseconds_str));
+                    auto finalTime = t + nanoseconds;
+
+                    auto UTC = date::make_zoned("GMT", finalTime).get_local_time();
+                    value = std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(UTC.time_since_epoch()).count());
+                }
             } else {
                 auto staticColumnsForFile = staticColumnsForFiles.find(file_uri);
                 if (staticColumnsForFile == staticColumnsForFiles.end()) {
@@ -219,8 +247,6 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
 }
 
 int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize, uint32_t threads) {
-    tiledb::Config config;
-    config.set("sm.dedup_coords", "true");
     //tiledb::VFS vfs(ctx);
     //tiledb::VFS::filebuf buff(vfs);
     unsigned long totalRows = 0;
@@ -250,15 +276,21 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter, 
             std::cerr << "File " << file_uri << " missing static columns mapping!! Aborting!!" << std::endl;
             return -1;
         }
+        std::unordered_map<std::string, std::string> ignoreColumns;
+        if (ignoreColumnsForFiles.find(file_uri) != ignoreColumnsForFiles.end())
+            ignoreColumns = ignoreColumnsForFiles.find(file_uri)->second;
         std::unordered_map<std::string, std::string> staticColumns = staticColumnsForFiles.find(file_uri)->second;
         //auto result = pool.enqueue(loadJob(file_uri, staticColumns, dimensionFields));
-        results.push_back(pool.enqueue(staticLoadJob, this, file_uri, staticColumns, dimensionFields, delimiter, arraySchema));
+        results.push_back(pool.enqueue(staticLoadJob, this, file_uri, staticColumns, ignoreColumns, dimensionFields, delimiter, arraySchema));
     }
 
     for(auto &result : results) {
         auto buffers = result.get();
         for (auto entry : buffers) {
             std::string bufferName = entry.first;
+            if (bufferName == TILEDB_COORDS) {
+                totalRows += sizeof(entry.second->values) / tiledb_datatype_size(entry.second->datatype) / dimensionFields.size();
+            }
             auto globalBuffer = globalBuffers.find(bufferName);
             if (globalBuffer != globalBuffers.end()) {
                 if (entry.second->offsets != nullptr) {

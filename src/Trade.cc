@@ -36,7 +36,9 @@
 
 nyse::Trade::Trade(std::string array_name) {
     this->array_uri = std::move(array_name);
-    this->ctx = std::make_shared<tiledb::Context>();
+    tiledb::Config config;
+    config.set("sm.dedup_coords", "true");
+    this->ctx = std::make_shared<tiledb::Context>(config);
 }
 
 std::vector<std::string> nyse::Trade::parserHeader(std::string headerLine, char delimiter) {
@@ -56,13 +58,13 @@ void nyse::Trade::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
 
     tiledb::Domain domain(*ctx);
     // time
-    //domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 1}}, 1000000000*60));
+    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 24UL*60*60*1000000000}}, 24UL*60*60*1000000000));
 
     // Store up to 2 years of data in array
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "date", {{1, 20381231}}, 31));
+    //domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "date", {{1, 20381231}}, 31));
 
     // Nanoseconds since midnight
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "Time", {{0UL, 235959000000000UL}}, 1000000000UL * 60)); // HHMMSSXXXXXXXXX
+    //domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "Time", {{0UL, UINT64_MAX - 1}}, 1000000000UL * 60)); // HHMMSSXXXXXXXXX
 
     // Sequence_Number
     domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "Sequence_Number", {{0, UINT64_MAX - 1}}, UINT64_MAX));
@@ -92,7 +94,7 @@ void nyse::Trade::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
     // Add a single attribute "a" so each (i,j) cell can store an integer.
 
     tiledb::Attribute Exchange = tiledb::Attribute::create<char>(*ctx, "Exchange").set_filter_list(attribute_filter_list);
-    tiledb::Attribute symbol = tiledb::Attribute::create<std::string>(*ctx, "Symbol").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Symbol = tiledb::Attribute::create<std::string>(*ctx, "Symbol").set_filter_list(attribute_filter_list);
     tiledb::Attribute Sale_Condition = tiledb::Attribute::create<std::string>(*ctx, "Sale_Condition").set_filter_list(attribute_filter_list);
     tiledb::Attribute Trade_Volume = tiledb::Attribute::create<uint32_t>(*ctx, "Trade_Volume").set_filter_list(attribute_filter_list);
     tiledb::Attribute Trade_Price = tiledb::Attribute::create<double>(*ctx, "Trade_Price").set_filter_list(attribute_filter_list);
@@ -106,7 +108,7 @@ void nyse::Trade::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
     tiledb::Attribute Trade_Through_Exempt_Indicator = tiledb::Attribute::create<uint8_t >(*ctx, "Trade_Through_Exempt_Indicator").set_filter_list(attribute_filter_list);
 
 
-    schema.add_attributes(Exchange, symbol, Sale_Condition, Trade_Volume, Trade_Price, Trade_Stop_Stock_Indicator, Trade_Correction_Indicator, Trade_Id,
+    schema.add_attributes(Exchange, Symbol, Sale_Condition, Trade_Volume, Trade_Price, Trade_Stop_Stock_Indicator, Trade_Correction_Indicator, Trade_Id,
             Source_of_Trade, Trade_Reporting_Facility, Participant_Timestamp, Trade_Reporting_Facility_TRF_Timestamp, Trade_Through_Exempt_Indicator);
 
     // Time|Exchange|Symbol|Sale Condition|Trade Volume|Trade Price|Trade Stop Stock Indicator|Trade Correction Indicator|Sequence Number|Trade Id|
@@ -122,7 +124,63 @@ int nyse::Trade::load(const std::vector<std::string> file_uris, char delimiter, 
         auto fileSplits = split(file_uri, '_');
         std::unordered_map<std::string, std::string> fileStaticColumns;
         fileStaticColumns.emplace("date", fileSplits.back());
+        fileStaticColumns.emplace("datetime", fileSplits.back());
         this->staticColumnsForFiles.emplace(file_uri, fileStaticColumns);
     }
     return Array::load(file_uris, delimiter, batchSize, threads);
 }
+/*
+
+void nyse::Trade::readSample() {
+    array = std::make_unique<tiledb::Array>(*ctx, array_uri, tiledb_query_type_t::TILEDB_READ);
+    query = std::make_unique<tiledb::Query>(*ctx, *array);
+
+    query->set_layout(tiledb_layout_t::TILEDB_GLOBAL_ORDER);
+
+    tiledb::ArraySchema arraySchema = array->schema();
+
+    auto coords = std::vector<uint64_t>(this->buffer_size);
+    query->set_coordinates(coords);
+
+    auto Exchange = std::vector<char>(this->buffer_size);
+    query->set_buffer("Exchange", Exchange);
+
+    auto Symbol = std::vector<std::string>(this->buffer_size);
+    auto Symbol_offsets = std::vector<uint64_t>(this->buffer_size);
+    query->set_buffer("Symbol", Symbol_offsets, Symbol);
+
+    auto Sale_Condition = std::vector<std::string>(this->buffer_size);
+    auto Sale_Condition_offsets = std::vector<uint64_t>(this->buffer_size);
+    query->set_buffer("Sale_Condition", Sale_Condition_offsets, Sale_Condition);
+
+    auto Trade_Volume = std::vector<uint32_t>(this->buffer_size);
+    query->set_buffer("Trade_Volume", Trade_Volume);
+
+    auto Trade_Price = std::vector<double>(this->buffer_size);
+    query->set_buffer("Trade_Price", Trade_Price);
+
+    auto Trade_Stop_Stock_Indicator = std::vector<char>(this->buffer_size);
+    query->set_buffer("Trade_Stop_Stock_Indicator", Trade_Stop_Stock_Indicator);
+
+    auto Trade_Correction_Indicator = std::vector<uint8_t>(this->buffer_size);
+    query->set_buffer("Trade_Correction_Indicator", Trade_Correction_Indicator);
+
+    auto Trade_Id = std::vector<std::string>(this->buffer_size);
+    auto Trade_Id_offsets = std::vector<uint64_t>(this->buffer_size);
+    query->set_buffer("Trade_Id", Trade_Id_offsets, Trade_Id);
+
+    auto Source_of_Trade = std::vector<char>(this->buffer_size);
+    query->set_buffer("Source_of_Trade", Source_of_Trade);
+
+    auto Trade_Reporting_Facility = std::vector<char>(this->buffer_size);
+    query->set_buffer("Trade_Reporting_Facility", Trade_Reporting_Facility);
+
+    auto Participant_Timestamp = std::vector<uint64_t>(this->buffer_size);
+    query->set_buffer("Participant_Timestamp", Participant_Timestamp);
+
+    auto Trade_Reporting_Facility_TRF_Timestamp = std::vector<uint64_t>(this->buffer_size);
+    query->set_buffer("Trade_Reporting_Facility_TRF_Timestamp", Trade_Reporting_Facility_TRF_Timestamp);
+
+    auto Trade_Through_Exempt_Indicator = std::vector<uint8_t>(this->buffer_size);
+    query->set_buffer("Trade_Through_Exempt_Indicator", Trade_Through_Exempt_Indicator);
+}*/

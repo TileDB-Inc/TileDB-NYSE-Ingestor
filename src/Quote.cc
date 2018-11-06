@@ -36,7 +36,9 @@
 
 nyse::Quote::Quote(std::string array_name) {
     this->array_uri = std::move(array_name);
-    this->ctx = std::make_shared<tiledb::Context>();
+    tiledb::Config config;
+    config.set("sm.dedup_coords", "true");
+    this->ctx = std::make_shared<tiledb::Context>(config);
 }
 
 void nyse::Quote::createArray(tiledb::FilterList coordinate_filter_list, tiledb::FilterList offset_filter_list,
@@ -49,13 +51,13 @@ void nyse::Quote::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
     // time
 /*    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 1}}, 1000000000));
     domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 1}}, YYYYMMDDHHMMSSXXXXXXXXX));*/
-
+    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 24UL*60*60*1000000000}}, 24UL*60*60*1000000000));
 
     // Store up to 2 years of data in array
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "date", {{1, 20381231}}, 31));
+    //domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "date", {{1, 20381231}}, 31));
 
     // Nanoseconds since midnight
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "Time", {{0UL, 235959000000000UL}}, 1000000000UL * 60)); // HHMMSSXXXXXXXXX
+    //domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "Time", {{0UL, 235959000000000UL}}, 1000000000UL * 60)); // HHMMSSXXXXXXXXX
 
     // Sequence_Number
     domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "Sequence_Number", {{0, UINT64_MAX - 1}}, UINT64_MAX));
@@ -125,6 +127,7 @@ int nyse::Quote::load(const std::vector<std::string> file_uris, char delimiter, 
         auto fileSplits = split(file_uri, '_');
         std::unordered_map<std::string, std::string> fileStaticColumns;
         fileStaticColumns.emplace("date", fileSplits.back());
+        fileStaticColumns.emplace("datetime", fileSplits.back());
         this->staticColumnsForFiles.emplace(file_uri, fileStaticColumns);
     }
     Array::load(file_uris, delimiter, batchSize, threads);
