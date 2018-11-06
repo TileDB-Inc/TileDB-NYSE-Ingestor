@@ -9,6 +9,7 @@
 #include <chrono>
 #include <sstream>
 #include <iomanip>
+#include <tiledb/tiledb>
 
 namespace nyse {
 /**
@@ -51,6 +52,38 @@ namespace nyse {
         }
 
         return ss.str();
+    }
+
+
+    static void create_filter_list_from_str(
+            tiledb::Context ctx,
+            tiledb::FilterList& filter_list,
+            const std::vector<std::string>& filters) {
+        for (auto& filter_str : filters) {
+            if (filter_str == "NOOP") {
+                filter_list.add_filter({ctx, TILEDB_FILTER_NONE});
+            } else if (filter_str == "GZIP") {
+                filter_list.add_filter({ctx, TILEDB_FILTER_GZIP});
+            } else if (filter_str == "ZSTD") {
+                filter_list.add_filter({ctx, TILEDB_FILTER_ZSTD});
+            } else if (filter_str == "LZ4") {
+                filter_list.add_filter({ctx, TILEDB_FILTER_LZ4});
+            } else if (filter_str == "RLE") {
+                filter_list.add_filter({ctx, TILEDB_FILTER_RLE});
+            } else if (filter_str == "BZIP2") {
+                filter_list.add_filter({ctx, TILEDB_FILTER_BZIP2});
+            } else if (filter_str == "DOUBLE_DELTA") {
+                filter_list.add_filter({ctx, TILEDB_FILTER_DOUBLE_DELTA});
+            } else if (filter_str == "BIT_WIDTH_REDUCTION") {
+                filter_list.add_filter({ctx, TILEDB_FILTER_BIT_WIDTH_REDUCTION});
+            } else if (filter_str == "BITSHUFFLE") {
+                filter_list.add_filter({ctx, TILEDB_FILTER_BITSHUFFLE});
+            } else if (filter_str == "BYTESHUFFLE") {
+                filter_list.add_filter({ctx, TILEDB_FILTER_BYTESHUFFLE});
+            } else if (filter_str == "POSITIVE_DELTA") {
+                filter_list.add_filter({ctx, TILEDB_FILTER_POSITIVE_DELTA});
+            }
+        }
     }
 }
 

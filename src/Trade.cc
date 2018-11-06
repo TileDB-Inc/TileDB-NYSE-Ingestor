@@ -36,6 +36,7 @@
 
 nyse::Trade::Trade(std::string array_name) {
     this->array_uri = std::move(array_name);
+    this->ctx = std::make_shared<tiledb::Context>();
 }
 
 std::vector<std::string> nyse::Trade::parserHeader(std::string headerLine, char delimiter) {
@@ -47,55 +48,62 @@ std::vector<std::string> nyse::Trade::parserHeader(std::string headerLine, char 
     return headerColumns;
 }
 
-void nyse::Trade::createArray() {
-    // Create a TileDB context.
-    tiledb::Context ctx;
-
+void nyse::Trade::createArray(tiledb::FilterList coordinate_filter_list, tiledb::FilterList offset_filter_list,
+                              tiledb::FilterList attribute_filter_list) {
     // If the array already exists on disk, return immediately.
-    if (tiledb::Object::object(ctx, array_uri).type() == tiledb::Object::Type::Array)
+    if (tiledb::Object::object(*ctx, array_uri).type() == tiledb::Object::Type::Array)
         return;
 
-    tiledb::Domain domain(ctx);
+    tiledb::Domain domain(*ctx);
     // time
-    //domain.add_dimension(tiledb::Dimension::create<uint64_t>(ctx, "datetime", {{0, UINT64_MAX - 1}}, 1000000000*60));
+    //domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 1}}, 1000000000*60));
 
     // Store up to 2 years of data in array
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(ctx, "date", {{1, 20381231}}, 31));
+    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "date", {{1, 20381231}}, 31));
 
     // Nanoseconds since midnight
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(ctx, "Time", {{0UL, 235959000000000UL}}, 1000000000UL * 60)); // HHMMSSXXXXXXXXX
+    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "Time", {{0UL, 235959000000000UL}}, 1000000000UL * 60)); // HHMMSSXXXXXXXXX
 
     // Sequence_Number
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(ctx, "Sequence_Number", {{0, UINT64_MAX - 1}}, UINT64_MAX));
+    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "Sequence_Number", {{0, UINT64_MAX - 1}}, UINT64_MAX));
 
     // The array will be dense.
-    tiledb::ArraySchema schema(ctx, TILEDB_SPARSE);
+    tiledb::ArraySchema schema(*ctx, TILEDB_SPARSE);
     schema.set_domain(domain).set_order({{TILEDB_ROW_MAJOR, TILEDB_ROW_MAJOR}});
+
+    if (coordinate_filter_list.nfilters() > 0) {
+        schema.set_coords_filter_list(coordinate_filter_list);
+    }
+
+    if (offset_filter_list.nfilters() > 0) {
+        schema.set_offsets_filter_list(offset_filter_list);
+    }
 
     // Set array capacity
     schema.set_capacity(10000000);
 
-    // Set compression filter to ZSTD
-    tiledb::FilterList filters(ctx);
-    tiledb::Filter compressor(ctx, TILEDB_FILTER_ZSTD);
-    //f.set_option(TILEDB_COMPRESSION_LEVEL, 5);
-    filters.add_filter(compressor);
+    // Set compression filter to ZSTD if not already set
+    if (attribute_filter_list.nfilters() == 0) {
+        tiledb::Filter compressor(*ctx, TILEDB_FILTER_ZSTD);
+        //f.set_option(TILEDB_COMPRESSION_LEVEL, 5);
+        attribute_filter_list.add_filter(compressor);
+    }
 
     // Add a single attribute "a" so each (i,j) cell can store an integer.
 
-    tiledb::Attribute Exchange = tiledb::Attribute::create<char>(ctx, "Exchange").set_filter_list(filters);
-    tiledb::Attribute symbol = tiledb::Attribute::create<std::string>(ctx, "Symbol").set_filter_list(filters);
-    tiledb::Attribute Sale_Condition = tiledb::Attribute::create<std::string>(ctx, "Sale_Condition").set_filter_list(filters);
-    tiledb::Attribute Trade_Volume = tiledb::Attribute::create<uint32_t>(ctx, "Trade_Volume").set_filter_list(filters);
-    tiledb::Attribute Trade_Price = tiledb::Attribute::create<double>(ctx, "Trade_Price").set_filter_list(filters);
-    tiledb::Attribute Trade_Stop_Stock_Indicator = tiledb::Attribute::create<char>(ctx, "Trade_Stop_Stock_Indicator").set_filter_list(filters);
-    tiledb::Attribute Trade_Correction_Indicator = tiledb::Attribute::create<uint8_t >(ctx, "Trade_Correction_Indicator").set_filter_list(filters);
-    tiledb::Attribute Trade_Id = tiledb::Attribute::create<std::string>(ctx, "Trade_Id").set_filter_list(filters);
-    tiledb::Attribute Source_of_Trade = tiledb::Attribute::create<char>(ctx, "Source_of_Trade").set_filter_list(filters);
-    tiledb::Attribute Trade_Reporting_Facility = tiledb::Attribute::create<char>(ctx, "Trade_Reporting_Facility").set_filter_list(filters);
-    tiledb::Attribute Participant_Timestamp = tiledb::Attribute::create<uint64_t >(ctx, "Participant_Timestamp").set_filter_list(filters);
-    tiledb::Attribute Trade_Reporting_Facility_TRF_Timestamp = tiledb::Attribute::create<uint64_t>(ctx, "Trade_Reporting_Facility_TRF_Timestamp").set_filter_list(filters);
-    tiledb::Attribute Trade_Through_Exempt_Indicator = tiledb::Attribute::create<uint8_t >(ctx, "Trade_Through_Exempt_Indicator").set_filter_list(filters);
+    tiledb::Attribute Exchange = tiledb::Attribute::create<char>(*ctx, "Exchange").set_filter_list(attribute_filter_list);
+    tiledb::Attribute symbol = tiledb::Attribute::create<std::string>(*ctx, "Symbol").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Sale_Condition = tiledb::Attribute::create<std::string>(*ctx, "Sale_Condition").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Trade_Volume = tiledb::Attribute::create<uint32_t>(*ctx, "Trade_Volume").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Trade_Price = tiledb::Attribute::create<double>(*ctx, "Trade_Price").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Trade_Stop_Stock_Indicator = tiledb::Attribute::create<char>(*ctx, "Trade_Stop_Stock_Indicator").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Trade_Correction_Indicator = tiledb::Attribute::create<uint8_t >(*ctx, "Trade_Correction_Indicator").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Trade_Id = tiledb::Attribute::create<std::string>(*ctx, "Trade_Id").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Source_of_Trade = tiledb::Attribute::create<char>(*ctx, "Source_of_Trade").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Trade_Reporting_Facility = tiledb::Attribute::create<char>(*ctx, "Trade_Reporting_Facility").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Participant_Timestamp = tiledb::Attribute::create<uint64_t >(*ctx, "Participant_Timestamp").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Trade_Reporting_Facility_TRF_Timestamp = tiledb::Attribute::create<uint64_t>(*ctx, "Trade_Reporting_Facility_TRF_Timestamp").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Trade_Through_Exempt_Indicator = tiledb::Attribute::create<uint8_t >(*ctx, "Trade_Through_Exempt_Indicator").set_filter_list(attribute_filter_list);
 
 
     schema.add_attributes(Exchange, symbol, Sale_Condition, Trade_Volume, Trade_Price, Trade_Stop_Stock_Indicator, Trade_Correction_Indicator, Trade_Id,

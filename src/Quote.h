@@ -46,7 +46,8 @@ namespace nyse {
         /**
          * Create quote array
          */
-        void createArray();
+        void createArray(tiledb::FilterList coordinate_filter_list, tiledb::FilterList offset_filter_list,
+                         tiledb::FilterList attribute_filter_list);
 
         /**
          * Load quote data into array

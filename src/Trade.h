@@ -46,7 +46,8 @@ namespace nyse {
         /**
          * Create trade array
          */
-        void createArray() override;
+        void createArray(tiledb::FilterList coordinate_filter_list, tiledb::FilterList offset_filter_list,
+                         tiledb::FilterList attribute_filter_list) override;
 
         /**
          * Parse header is a function for parsing the header row of a file, we remove spaces and replace with '_'

@@ -47,7 +47,8 @@ namespace nyse {
         /**
          * Create master symbol array
          */
-        void createArray() override;
+        void createArray(tiledb::FilterList coordinate_filter_list, tiledb::FilterList offset_filter_list,
+                         tiledb::FilterList attribute_filter_list) override;
 
         /**
          * Load master symbol data into array

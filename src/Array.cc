@@ -221,7 +221,6 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
 int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize, uint32_t threads) {
     tiledb::Config config;
     config.set("sm.dedup_coords", "true");
-    ctx = std::make_unique<tiledb::Context>(config);
     //tiledb::VFS vfs(ctx);
     //tiledb::VFS::filebuf buff(vfs);
     unsigned long totalRows = 0;
@@ -264,10 +263,11 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter, 
             if (globalBuffer != globalBuffers.end()) {
                 if (entry.second->offsets != nullptr) {
                     //globalBuffer->second->offsets->insert( globalBuffer->second->offsets->end(), entry.second->offsets->begin(), entry.second->offsets->end() );
-                    size_t scaleFactor = globalBuffer->second->offsets->size();
+                    /*size_t scaleFactor = std::static_pointer_cast<std::vector<void>>(globalBuffer->second->values)->size();
                     for(auto offset : *entry.second->offsets) {
                         globalBuffer->second->offsets->push_back(offset + scaleFactor);
-                    }
+                    }*/
+                    concatOffsets(globalBuffer->second->offsets, entry.second->offsets, globalBuffer->second->values, entry.second->datatype);
                     entry.second->offsets.reset();
                 }
                 if (entry.second->values != nullptr) {
@@ -288,7 +288,6 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter, 
     query->finalize();
 
     array->close();
-
 
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
     printf("loaded %ld rows in %s (%.2f rows/second)\n",totalRows, beautify_duration(duration).c_str(), (float(totalRows)) / duration.count());
@@ -608,4 +607,110 @@ void nyse::Array::concatBuffers(std::shared_ptr<void> globalBuffer, std::shared_
             break;
         }
     }
+}
+
+void nyse::Array::concatOffsets(std::shared_ptr<std::vector<uint64_t>> globalOffsets,
+        std::shared_ptr<std::vector<uint64_t>> bufferOffsets,
+        std::shared_ptr<void> globalValuesBuffer, tiledb_datatype_t datatype) {
+    switch (datatype) {
+        case tiledb_datatype_t::TILEDB_INT32: {
+            std::shared_ptr<std::vector<int32_t>> globalBufferCast = std::static_pointer_cast<std::vector<int32_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_INT64: {
+            std::shared_ptr<std::vector<int64_t>> globalBufferCast = std::static_pointer_cast<std::vector<int64_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_FLOAT32: {
+            std::shared_ptr<std::vector<float>> globalBufferCast = std::static_pointer_cast<std::vector<float>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_FLOAT64: {
+            std::shared_ptr<std::vector<double>> globalBufferCast = std::static_pointer_cast<std::vector<double>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_INT8: {
+            std::shared_ptr<std::vector<int8_t>> globalBufferCast = std::static_pointer_cast<std::vector<int8_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_UINT8: {
+            std::shared_ptr<std::vector<uint8_t>> globalBufferCast = std::static_pointer_cast<std::vector<uint8_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_INT16: {
+            std::shared_ptr<std::vector<int16_t>> globalBufferCast = std::static_pointer_cast<std::vector<int16_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_UINT16: {
+            std::shared_ptr<std::vector<uint16_t>> globalBufferCast = std::static_pointer_cast<std::vector<uint16_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_UINT32: {
+            std::shared_ptr<std::vector<uint32_t>> globalBufferCast = std::static_pointer_cast<std::vector<uint32_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_UINT64: {
+            std::shared_ptr<std::vector<uint64_t>> globalBufferCast = std::static_pointer_cast<std::vector<uint64_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_CHAR:
+        case tiledb_datatype_t::TILEDB_STRING_ASCII:
+        case tiledb_datatype_t::TILEDB_STRING_UTF8:
+        case tiledb_datatype_t::TILEDB_STRING_UTF16:
+        case tiledb_datatype_t::TILEDB_STRING_UTF32:
+        case tiledb_datatype_t::TILEDB_STRING_UCS2:
+        case tiledb_datatype_t::TILEDB_STRING_UCS4:
+        case tiledb_datatype_t::TILEDB_ANY: {
+            std::shared_ptr<std::vector<char>> globalBufferCast = std::static_pointer_cast<std::vector<char>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+    }
+}
+
+const std::shared_ptr<tiledb::Context> &nyse::Array::getCtx() const {
+    return ctx;
 }

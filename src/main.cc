@@ -88,6 +88,15 @@ int main(int argc, char** argv) {
     bool consolidate = false;
     app.add_flag("--consolidate", consolidate, "Consolidate array");
 
+    std::vector<std::string> coordinate_filters;
+    app.add_option("--coordinate_filters", coordinate_filters, "List of filters to apply to coordinates", false);
+
+    std::vector<std::string> offset_filters;
+    app.add_option("--offset_filters", offset_filters, "List of filters to apply to offsets", false);
+
+    std::vector<std::string> attribute_filters;
+    app.add_option("--attribute_filters", attribute_filters, "List of filters to apply to attributes", false);
+
     CLI11_PARSE(app, argc, argv);
 
     if (filename.empty() && !createArray) {
@@ -109,7 +118,20 @@ int main(int argc, char** argv) {
         array = std::make_unique<nyse::Trade>(arrayUri);
     }
     if (createArray) {
-        array->createArray();
+
+        tiledb::FilterList coordinate_filter_list(*array->getCtx());
+        tiledb::FilterList offset_filter_list(*array->getCtx());
+        tiledb::FilterList attribute_filter_list(*array->getCtx());
+        if (!coordinate_filters.empty()) {
+            nyse::create_filter_list_from_str(*array->getCtx(), coordinate_filter_list, coordinate_filters);
+        }
+        if (!offset_filters.empty()) {
+            nyse::create_filter_list_from_str(*array->getCtx(), offset_filter_list, offset_filters);
+        }
+        if (!attribute_filters.empty()) {
+            nyse::create_filter_list_from_str(*array->getCtx(), attribute_filter_list, attribute_filters);
+        }
+        array->createArray(coordinate_filter_list, offset_filter_list, attribute_filter_list);
         return 0;
     }
 
