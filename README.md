@@ -9,6 +9,20 @@ performance was significantly slower than local data.
 
 ## Building
 
+### Prereqs
+
+Install date as a shared library:
+
+```
+git clone https://github.com/HowardHinnant/date.git
+cd date && mkdir build && cd build
+cmake .. -DBUILD_SHARED_LIBS=ON -DUSE_SYSTEM_TZ_DB=ON
+make -j$(nproc)
+sudo make install
+```
+
+### Building
+
 ```
 mkdir build
 cd build
