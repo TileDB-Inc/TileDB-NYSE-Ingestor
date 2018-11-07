@@ -391,6 +391,10 @@ void nyse::Array::appendBuffer(const std::string &fieldName, const std::string &
                 }
                 buffer->offsets->push_back(values->size());
             }
+            if (valueConst.empty()) {
+                value = "";
+                value.reserve(1);
+            }
             for(const char &c : value) {
                 values->emplace_back(c);
             }
