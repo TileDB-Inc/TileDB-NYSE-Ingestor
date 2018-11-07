@@ -127,12 +127,18 @@ int main(int argc, char** argv) {
         tiledb::FilterList attribute_filter_list(*array->getCtx());
         if (!coordinate_filters.empty()) {
             nyse::create_filter_list_from_str(*array->getCtx(), coordinate_filter_list, coordinate_filters);
+        } else {
+            coordinate_filter_list.add_filter({*array->getCtx(), TILEDB_FILTER_POSITIVE_DELTA}).add_filter({*array->getCtx(), TILEDB_FILTER_ZSTD});
         }
         if (!offset_filters.empty()) {
             nyse::create_filter_list_from_str(*array->getCtx(), offset_filter_list, offset_filters);
+        } else {
+            offset_filter_list.add_filter({*array->getCtx(), TILEDB_FILTER_DOUBLE_DELTA}).add_filter({*array->getCtx(), TILEDB_FILTER_ZSTD});
         }
         if (!attribute_filters.empty()) {
             nyse::create_filter_list_from_str(*array->getCtx(), attribute_filter_list, attribute_filters);
+        } else {
+            attribute_filter_list.add_filter({*array->getCtx(), TILEDB_FILTER_ZSTD});
         }
         array->createArray(coordinate_filter_list, offset_filter_list, attribute_filter_list);
         return 0;
