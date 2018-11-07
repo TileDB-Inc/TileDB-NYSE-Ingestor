@@ -58,7 +58,7 @@ void nyse::Trade::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
 
     tiledb::Domain domain(*ctx);
     // time
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 24UL*60*60*1000000000}}, 24UL*60*60*1000000000));
+    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 60UL*60*1000000000}}, 60UL*60*1000000000));
 
     // Store up to 2 years of data in array
     //domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "date", {{1, 20381231}}, 31));
@@ -97,7 +97,7 @@ void nyse::Trade::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
     tiledb::Attribute Symbol = tiledb::Attribute::create<std::string>(*ctx, "Symbol").set_filter_list(attribute_filter_list);
     tiledb::Attribute Sale_Condition = tiledb::Attribute::create<std::string>(*ctx, "Sale_Condition").set_filter_list(attribute_filter_list);
     tiledb::Attribute Trade_Volume = tiledb::Attribute::create<uint32_t>(*ctx, "Trade_Volume").set_filter_list(attribute_filter_list);
-    tiledb::Attribute Trade_Price = tiledb::Attribute::create<double>(*ctx, "Trade_Price").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Trade_Price = tiledb::Attribute::create<float>(*ctx, "Trade_Price").set_filter_list(attribute_filter_list);
     tiledb::Attribute Trade_Stop_Stock_Indicator = tiledb::Attribute::create<char>(*ctx, "Trade_Stop_Stock_Indicator").set_filter_list(attribute_filter_list);
     tiledb::Attribute Trade_Correction_Indicator = tiledb::Attribute::create<uint8_t >(*ctx, "Trade_Correction_Indicator").set_filter_list(attribute_filter_list);
     tiledb::Attribute Trade_Id = tiledb::Attribute::create<std::string>(*ctx, "Trade_Id").set_filter_list(attribute_filter_list);
@@ -105,7 +105,7 @@ void nyse::Trade::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
     tiledb::Attribute Trade_Reporting_Facility = tiledb::Attribute::create<char>(*ctx, "Trade_Reporting_Facility").set_filter_list(attribute_filter_list);
     tiledb::Attribute Participant_Timestamp = tiledb::Attribute::create<uint64_t >(*ctx, "Participant_Timestamp").set_filter_list(attribute_filter_list);
     tiledb::Attribute Trade_Reporting_Facility_TRF_Timestamp = tiledb::Attribute::create<uint64_t>(*ctx, "Trade_Reporting_Facility_TRF_Timestamp").set_filter_list(attribute_filter_list);
-    tiledb::Attribute Trade_Through_Exempt_Indicator = tiledb::Attribute::create<uint8_t >(*ctx, "Trade_Through_Exempt_Indicator").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Trade_Through_Exempt_Indicator = tiledb::Attribute::create<uint8_t>(*ctx, "Trade_Through_Exempt_Indicator").set_filter_list(attribute_filter_list);
 
 
     schema.add_attributes(Exchange, Symbol, Sale_Condition, Trade_Volume, Trade_Price, Trade_Stop_Stock_Indicator, Trade_Correction_Indicator, Trade_Id,
@@ -143,7 +143,8 @@ uint64_t nyse::Trade::readSample() {
 
     // 2018-07-30 09:30:00.000 to 2018-07-30 12:30:00.000
     // Then select the entire domain for sequence number
-    std::vector<uint64_t> subarray = {1532957400000000000, 1532968200000000000, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
+    // std::vector<uint64_t> subarray = {1532957400000000000, 1532968200000000000, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
+    std::vector<uint64_t> subarray = {nonEmptyDomain[0].second.first, nonEmptyDomain[0].second.second, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
     query->set_subarray(subarray);
 
     std::vector<uint64_t> coords(this->buffer_size / sizeof(uint64_t));
@@ -163,7 +164,7 @@ uint64_t nyse::Trade::readSample() {
     std::vector<uint32_t> Trade_Volume(this->buffer_size / sizeof(uint32_t));
     query->set_buffer("Trade_Volume", Trade_Volume);
 
-    std::vector<double> Trade_Price(this->buffer_size / sizeof(double));
+    std::vector<float> Trade_Price(this->buffer_size / sizeof(float));
     query->set_buffer("Trade_Price", Trade_Price);
 
     std::vector<char> Trade_Stop_Stock_Indicator(this->buffer_size / sizeof(char));

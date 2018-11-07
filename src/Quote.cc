@@ -51,7 +51,7 @@ void nyse::Quote::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
     // time
 /*    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 1}}, 1000000000));
     domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 1}}, YYYYMMDDHHMMSSXXXXXXXXX));*/
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 24UL*60*60*1000000000}}, 24UL*60*60*1000000000));
+    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 60UL*60*1000000000}}, 60UL*60*1000000000));
 
     // Store up to 2 years of data in array
     //domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "date", {{1, 20381231}}, 31));
@@ -88,9 +88,9 @@ void nyse::Quote::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
 
     tiledb::Attribute Exchange = tiledb::Attribute::create<char>(*ctx, "Exchange").set_filter_list(attribute_filter_list);
     tiledb::Attribute symbol = tiledb::Attribute::create<std::string>(*ctx, "Symbol").set_filter_list(attribute_filter_list);
-    tiledb::Attribute Bid_Price = tiledb::Attribute::create<double>(*ctx, "Bid_Price").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Bid_Price = tiledb::Attribute::create<float>(*ctx, "Bid_Price").set_filter_list(attribute_filter_list);
     tiledb::Attribute Bid_Size = tiledb::Attribute::create<uint32_t>(*ctx, "Bid_Size").set_filter_list(attribute_filter_list);
-    tiledb::Attribute Offer_Price = tiledb::Attribute::create<double>(*ctx, "Offer_Price").set_filter_list(attribute_filter_list);
+    tiledb::Attribute Offer_Price = tiledb::Attribute::create<float>(*ctx, "Offer_Price").set_filter_list(attribute_filter_list);
     tiledb::Attribute Offer_Size = tiledb::Attribute::create<uint32_t>(*ctx, "Offer_Size").set_filter_list(attribute_filter_list);
     tiledb::Attribute Quote_Condition = tiledb::Attribute::create<char>(*ctx, "Quote_Condition").set_filter_list(attribute_filter_list);
     tiledb::Attribute National_BBO_Ind = tiledb::Attribute::create<char>(*ctx, "National_BBO_Ind").set_filter_list(attribute_filter_list); // This is listed as numeric but it is alphanumeric (but only a single char)
@@ -146,7 +146,8 @@ uint64_t nyse::Quote::readSample() {
 
     // 2018-07-30 09:30:00.000 to 2018-07-30 12:30:00.000
     // Then select the entire domain for sequence number
-    std::vector<uint64_t> subarray = {1532957400000000000, 1532968200000000000, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
+    //std::vector<uint64_t> subarray = {1532957400000000000, 1532968200000000000, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
+    std::vector<uint64_t> subarray = {nonEmptyDomain[0].second.first, nonEmptyDomain[0].second.second, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
     query->set_subarray(subarray);
 
     std::vector<uint64_t> coords(this->buffer_size / sizeof(uint64_t));
@@ -159,13 +160,13 @@ uint64_t nyse::Quote::readSample() {
     std::vector<uint64_t> Symbol_offsets(this->buffer_size / sizeof(uint64_t));
     query->set_buffer("Symbol", Symbol_offsets, Symbol);
 
-    std::vector<double> Bid_Price(this->buffer_size / sizeof(double));
+    std::vector<float> Bid_Price(this->buffer_size / sizeof(float));
     query->set_buffer("Bid_Price", Bid_Price);
 
     std::vector<uint32_t> Bid_Size(this->buffer_size / sizeof(uint32_t));
     query->set_buffer("Bid_Size", Bid_Size);
 
-    std::vector<double> Offer_Price(this->buffer_size / sizeof(double));
+    std::vector<float> Offer_Price(this->buffer_size / sizeof(float));
     query->set_buffer("Offer_Price", Offer_Price);
 
     std::vector<uint32_t> Offer_Size(this->buffer_size / sizeof(uint32_t));
