@@ -33,6 +33,7 @@
 
 #include "Quote.h"
 #include <tiledb/tiledb>
+#include <fstream>
 
 nyse::Quote::Quote(std::string array_name) {
     this->array_uri = std::move(array_name);
@@ -133,10 +134,15 @@ int nyse::Quote::load(const std::vector<std::string> file_uris, char delimiter, 
     Array::load(file_uris, delimiter, batchSize, threads);
 }
 
-uint64_t nyse::Quote::readSample() {
+uint64_t nyse::Quote::readSample(std::string outfile, std::string delimiter) {
     uint64_t rows_read = 0;
     array = std::make_unique<tiledb::Array>(*ctx, array_uri, tiledb_query_type_t::TILEDB_READ);
     query = std::make_unique<tiledb::Query>(*ctx, *array);
+
+    std::ofstream output;
+    if (!outfile.empty()) {
+        output = std::ofstream(outfile);
+    }
 
     query->set_layout(tiledb_layout_t::TILEDB_GLOBAL_ORDER);
 
@@ -218,21 +224,86 @@ uint64_t nyse::Quote::readSample() {
     query->set_buffer("Security_Status_Indicator", Security_Status_Indicator);
 
     tiledb::Query::Status status;
+    size_t previous_result_num = 0;
     do {
         // Submit query and get status
         query->submit();
         status = query->query_status();
 
         // If any results were retrieved, parse and print them
-        auto result_num = (int)query->result_buffer_elements()[TILEDB_COORDS].second;
+        auto result_num = (int)query->result_buffer_elements()[TILEDB_COORDS].second / arraySchema.domain().ndim();
         rows_read += result_num;
         if (status == tiledb::Query::Status::INCOMPLETE &&
             result_num == 0) {  // VERY IMPORTANT!!
             std::cerr << "Buffers were too small for query, you should fix this, test is invalid" << std::endl;
+            std::cerr << "Last complete rows read: " << rows_read << std::endl;
+            std::cerr << "Last good coordinates [" << coords[previous_result_num-2] << ", " << coords[previous_result_num-1] << "] for result size " << previous_result_num << std::endl;
             break;
             //reallocate_buffers(&coords, &a1_data, &a2_off, &a2_data);
         }
+        if (output.is_open()) {
+            for (int i = 0; i < result_num; i++) {
+                std::stringstream ss;
+                ss << std::to_string(coords[i * 2 ]);
+                ss << delimiter;
+                ss << std::to_string(coords[i * 2 + 1]);
+                ss << delimiter;
+                ss << std::string(1, Exchange[i]);
+                ss << delimiter;
+                size_t symbolEnd = ((i + 1  == result_num) ? Symbol.size() : Symbol_offsets[i+1]);
+                ss << std::string(Symbol.begin()+Symbol_offsets[i], Symbol.begin()+symbolEnd);
+                ss << delimiter;
+                ss << std::to_string(Bid_Price[i]);
+                ss << delimiter;
+                ss << std::to_string(Bid_Size[i]);
+                ss << delimiter;
+                ss << std::to_string(Offer_Price[i]);
+                ss << delimiter;
+                ss << std::to_string(Offer_Size[i]);
+                ss << delimiter;
+                ss << std::string(1, Quote_Condition[i]);
+                ss << delimiter;
+                ss << std::string(1, National_BBO_Ind[i]);
+                ss << delimiter;
+                ss << std::string(1, FINRA_BBO_Indicator[i]);
+                ss << delimiter;
+                ss << std::to_string(FINRA_ADF_MPID_Indicator[i]);
+                ss << delimiter;
+                ss << std::string(1, Quote_Cancel_Correction[i]);
+                ss << delimiter;
+                ss << std::string(1, Source_Of_Quote[i]);
+                ss << delimiter;
+                ss << std::string(1, Retail_Interest_Indicator[i]);
+                ss << delimiter;
+                ss << std::string(1, Short_Sale_Restriction_Indicator[i]);
+                ss << delimiter;
+                ss << std::string(1, LULD_BBO_Indicator[i]);
+                ss << delimiter;
+                ss << std::string(1, SIP_Generated_Message_Identifier[i]);
+                ss << delimiter;
+                ss << std::string(1, National_BBO_LULD_Indicator[i]);
+                ss << delimiter;
+                ss << std::to_string(Participant_Timestamp[i]);
+                ss << delimiter;
+                ss << std::to_string(FINRA_ADF_Timestamp[i]);
+                ss << delimiter;
+                ss << std::string(1, FINRA_ADF_Market_Participant_Quote_Indicator[i]);
+                ss << delimiter;
+                ss << std::string(1, Security_Status_Indicator[i]);
+                ss << std::endl;
+
+                output << ss.rdbuf();
+            }
+        }
+
+        //std::cerr << "Last good coordinates [" << coords[result_num-2] << ", " << coords[result_num-1] << "] for result size " << result_num << std::endl;
+        previous_result_num = result_num;
     } while (status == tiledb::Query::Status::INCOMPLETE);
+
+
+    if (output.is_open()) {
+        output.close();
+    }
 
     return rows_read;
 }

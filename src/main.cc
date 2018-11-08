@@ -91,6 +91,9 @@ int main(int argc, char** argv) {
     bool readSample = false;
     app.add_flag("--read", readSample, "read sample data from array for testing");
 
+    std::string writeFile;
+    app.add_option("--write-file", writeFile, "File to write csv format data from read");
+
     std::vector<std::string> coordinate_filters;
     app.add_option("--coordinate_filters", coordinate_filters, "List of filters to apply to coordinates", false);
 
@@ -157,7 +160,7 @@ int main(int argc, char** argv) {
 
     if (readSample) {
         auto startTime = std::chrono::steady_clock::now();
-        uint64_t rows = array->readSample();
+        uint64_t rows = array->readSample(writeFile, delimiter);
 
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
         printf("read %lu rows in %s (%.2f rows/second)\n", rows, nyse::beautify_duration(duration).c_str(), float(rows) / duration.count());
