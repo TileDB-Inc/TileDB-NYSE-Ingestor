@@ -127,10 +127,10 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
     for (int fieldIndex = 0; fieldIndex < headerFields.size(); fieldIndex++) {
         const std::string &field = headerFields[fieldIndex];
         if (dimensionFields.find(field) == dimensionFields.end() && field != "Time") {
-            if (arraySchema.attribute(field) == nullptr) {
+            /*if (arraySchema.attribute(field) == nullptr) {
                 std::cerr << field << " does not exists in array (" + array_uri + ")" << std::endl;
                 return buffers;
-            }
+            }*/
         }
         fieldLookup.emplace(field, fieldIndex);
     }
@@ -179,19 +179,21 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
         }
         //totalRows++;
         totalRowsInFile++;
-        if (fields.size() != expectedFields) {
+        /*if (fields.size() != expectedFields) {
             std::cerr << "Line " << totalRowsInFile << " is missing fields! Line has " << fields.size() << " expected "
                       << expectedFields << std::endl;
-        }
-        for (size_t fieldNum = 0; fieldNum < fields.size(); fieldNum++) {
-            const std::string &fieldName = headerFields[fieldNum];
-            // Skip dimensions
-            if (dimensionFields.find(fieldName) != dimensionFields.end())
-                continue;
-            if (fieldName == "Time")
-                continue;
-            std::string fieldValue = fields[fieldNum];
-            appendBuffer(fieldName, fieldValue, buffers.find(fieldName)->second);
+        }*/
+        if (arraySchema.attribute_num() > 0) {
+            for (size_t fieldNum = 0; fieldNum < fields.size(); fieldNum++) {
+                const std::string &fieldName = headerFields[fieldNum];
+                // Skip dimensions
+                if (dimensionFields.find(fieldName) != dimensionFields.end())
+                    continue;
+                if (fieldName == "Time")
+                    continue;
+                std::string fieldValue = fields[fieldNum];
+                appendBuffer(fieldName, fieldValue, buffers.find(fieldName)->second);
+            }
         }
 
         for (const tiledb::Dimension &dimension : arraySchema.domain().dimensions()) {
@@ -217,7 +219,6 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
                     stream >> date::parse("%Y%m%d%H%M%S%z", t);
                     if (stream.fail())
                         throw std::runtime_error("failed to parse " + datetime);
-
 
                     auto nanoseconds = std::chrono::nanoseconds(std::stoll(nanoseconds_str));
                     auto finalTime = t + nanoseconds;
@@ -392,8 +393,7 @@ void nyse::Array::appendBuffer(const std::string &fieldName, const std::string &
                 buffer->offsets->push_back(values->size());
             }
             if (valueConst.empty()) {
-                value = "";
-                value.reserve(1);
+                value = " ";
             }
             for(const char &c : value) {
                 values->emplace_back(c);

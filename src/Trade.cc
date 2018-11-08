@@ -33,6 +33,7 @@
 
 #include "Trade.h"
 #include <tiledb/tiledb>
+#include <fstream>
 
 nyse::Trade::Trade(std::string array_name) {
     this->array_uri = std::move(array_name);
@@ -58,7 +59,7 @@ void nyse::Trade::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
 
     tiledb::Domain domain(*ctx);
     // time
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 60UL*60*1000000000}}, 60UL*60*1000000000));
+    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 60*60*1000000000UL}}, 60*60UL*1000000000));
 
     // Store up to 2 years of data in array
     //domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "date", {{1, 20381231}}, 31));
@@ -130,10 +131,15 @@ int nyse::Trade::load(const std::vector<std::string> file_uris, char delimiter, 
     return Array::load(file_uris, delimiter, batchSize, threads);
 }
 
-uint64_t nyse::Trade::readSample() {
+uint64_t nyse::Trade::readSample(std::string outfile) {
     uint64_t rows_read = 0;
     array = std::make_unique<tiledb::Array>(*ctx, array_uri, tiledb_query_type_t::TILEDB_READ);
     query = std::make_unique<tiledb::Query>(*ctx, *array);
+
+    std::ofstream output;
+    if (!outfile.empty()) {
+        output = std::ofstream(outfile);
+    }
 
     query->set_layout(tiledb_layout_t::TILEDB_GLOBAL_ORDER);
 
@@ -145,10 +151,19 @@ uint64_t nyse::Trade::readSample() {
     // Then select the entire domain for sequence number
     // std::vector<uint64_t> subarray = {1532957400000000000, 1532968200000000000, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
     std::vector<uint64_t> subarray = {nonEmptyDomain[0].second.first, nonEmptyDomain[0].second.second, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
+    // {1532937600000000000, 1532995200000000000, 1002, 220038001}
+    //std::vector<uint64_t> subarray = {1532957399000000000UL, nonEmptyDomain[0].second.second, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
+
+    // BAD
+    //std::vector<uint64_t> subarray = {1532957399000000000UL, 1532957699000000000UL, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
+    //std::vector<uint64_t> subarray = {1532957399000000000UL, 1532957699000000000UL, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
+    //std::vector<uint64_t> subarray = {1532957799000000000UL, 1532958199000000000UL, nonEmptyDomain[1].second.first, nonEmptyDomain[1].second.second};
     query->set_subarray(subarray);
 
     std::vector<uint64_t> coords(this->buffer_size / sizeof(uint64_t));
     query->set_coordinates(coords);
+
+    auto max_buffer_elements = array->max_buffer_elements(subarray);
 
     std::vector<char> Exchange(this->buffer_size / sizeof(char));
     query->set_buffer("Exchange", Exchange);
@@ -193,21 +208,69 @@ uint64_t nyse::Trade::readSample() {
     query->set_buffer("Trade_Through_Exempt_Indicator", Trade_Through_Exempt_Indicator);
 
     tiledb::Query::Status status;
+    size_t previous_result_num = 0;
     do {
         // Submit query and get status
         query->submit();
         status = query->query_status();
 
         // If any results were retrieved, parse and print them
-        auto result_num = (int)query->result_buffer_elements()[TILEDB_COORDS].second;
+        auto result_num = (int)query->result_buffer_elements()[TILEDB_COORDS].second / arraySchema.domain().ndim();
         rows_read += result_num;
         if (status == tiledb::Query::Status::INCOMPLETE &&
             result_num == 0) {  // VERY IMPORTANT!!
             std::cerr << "Buffers were too small for query, you should fix this, test is invalid" << std::endl;
+            std::cerr << "Last complete rows read: " << rows_read << std::endl;
+            std::cerr << "Last good coordinates [" << coords[previous_result_num-2] << ", " << coords[previous_result_num-1] << "] for result size " << previous_result_num << std::endl;
             break;
             //reallocate_buffers(&coords, &a1_data, &a2_off, &a2_data);
         }
+        if (output.is_open()) {
+            for (int i = 0; i < result_num; i++) {
+                std::stringstream ss;
+                ss << std::to_string(coords[i * 2 ]);
+                ss << "|";
+                ss << std::to_string(coords[i * 2 + 1]);
+                ss << "|";
+                ss << std::string(1, Exchange[i]);
+                ss << "|";
+                size_t symbolLength = ((i + 1  == result_num) ? Symbol.size() : Symbol_offsets[i+1]);
+                ss << std::string(Symbol.begin()+Symbol_offsets[i], Symbol.begin()+symbolLength);
+                ss << "|";
+                ss << std::string(1, Sale_Condition[i]);
+                ss << "|";
+                ss << std::to_string(Trade_Volume[i]);
+                ss << "|";
+                ss << std::to_string(Trade_Price[i]);
+                ss << "|";
+                ss << std::string(1, Trade_Stop_Stock_Indicator[i]);
+                ss << "|";
+                ss << std::to_string(Trade_Correction_Indicator[i]);
+                ss << "|";
+                size_t Trade_Id_Length = ((i + 1  == result_num) ? Trade_Id.size() : Trade_Id_offsets[i+1]);
+                ss << std::string(Trade_Id.begin()+Trade_Id_offsets[i], Trade_Id.begin()+Trade_Id_Length);
+                ss << "|";
+                ss << std::string(1, Source_of_Trade[i]);
+                ss << "|";
+                ss << std::string(1, Trade_Reporting_Facility[i]);
+                ss << "|";
+                ss << std::to_string(Participant_Timestamp[i]);
+                ss << "|";
+                ss << std::to_string(Trade_Reporting_Facility_TRF_Timestamp[i]);
+                ss << "|";
+                ss << std::to_string(Trade_Through_Exempt_Indicator[i]);
+                ss << std::endl;
+
+                output << ss.rdbuf();
+            }
+        }
+        //std::cerr << "Last good coordinates [" << coords[result_num-2] << ", " << coords[result_num-1] << "] for result size " << result_num << std::endl;
+        previous_result_num = result_num;
     } while (status == tiledb::Query::Status::INCOMPLETE);
+
+    if (output.is_open()) {
+        output.close();
+    }
 
     return rows_read;
 }
