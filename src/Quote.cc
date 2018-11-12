@@ -131,7 +131,7 @@ int nyse::Quote::load(const std::vector<std::string> file_uris, char delimiter, 
         fileStaticColumns.emplace("datetime", fileSplits.back());
         this->staticColumnsForFiles.emplace(file_uri, fileStaticColumns);
     }
-    Array::load(file_uris, delimiter, batchSize, threads);
+    return Array::load(file_uris, delimiter, batchSize, threads);
 }
 
 uint64_t nyse::Quote::readSample(std::string outfile, std::string delimiter) {

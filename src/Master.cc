@@ -171,5 +171,5 @@ int nyse::Master::load(const std::vector<std::string> file_uris, char delimiter,
         fileStaticColumns.emplace("fake", fileSplits.back());
         this->staticColumnsForFiles.emplace(file_uri, fileStaticColumns);
     }
-    Array::load(file_uris, delimiter, batchSize, threads);
+    return Array::load(file_uris, delimiter, batchSize, threads);
 }
