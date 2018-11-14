@@ -45,7 +45,7 @@
 #include <sys/ioctl.h>
 #endif
 
-std::vector<std::string> nyse::Array::parserHeader(std::string headerLine, char delimiter) {
+std::vector<std::string> nyse::Array::parseHeader(std::string headerLine, char delimiter) {
     return split(headerLine, delimiter);
 }
 
@@ -90,21 +90,21 @@ std::shared_ptr<void> nyse::createBuffer(tiledb_datatype_t datatype) {
     }
 }
 
-static std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> staticLoadJob(nyse::Array *array, std::string file_uri,
+static std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> staticLoadJob(nyse::Array *array, const std::string &file_uri,
                                                                                     std::unordered_map<std::string, std::string> staticColumns,
-                                                                                    std::unordered_map<std::string, std::string> ignoreColumns,
-                                                                                    std::set<std::string> dimensionFields,
+                                                                                    std::shared_ptr<std::unordered_map<std::string, std::pair<std::string, std::unordered_map<std::string, std::string>*>>> mapColumns,
+                                                                                    std::set<std::string> *dimensionFields,
                                                                                     char delimiter,
-                                                                                    tiledb::ArraySchema arraySchema) {
-    return array->parseFileToBuffer(file_uri, staticColumns, ignoreColumns, dimensionFields, delimiter, arraySchema);
+                                                                                    tiledb::ArraySchema &arraySchema) {
+    return array->parseFileToBuffer(file_uri, staticColumns, mapColumns, dimensionFields, delimiter, arraySchema);
 }
 
-std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::parseFileToBuffer(std::string file_uri,
+std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::parseFileToBuffer(const std::string &file_uri,
         std::unordered_map<std::string, std::string> staticColumns,
-        std::unordered_map<std::string, std::string> ignoreColumns,
-        std::set<std::string> dimensionFields,
+        std::shared_ptr<std::unordered_map<std::string, std::pair<std::string, std::unordered_map<std::string, std::string>*>>> mapColumns,
+        std::set<std::string>*dimensionFields,
         char delimiter,
-        tiledb::ArraySchema arraySchema) {
+        tiledb::ArraySchema &arraySchema) {
     uint64_t totalRowsInFile = 0;
     std::unordered_map<std::string, std::shared_ptr<buffer>> buffers;
     std::ifstream is(file_uri);
@@ -121,26 +121,22 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
     std::getline(is, headerLine);
 
     // Parse the header row, this is a virtual function because Trade data needs to remove spaces from header columns
-    const std::vector<std::string> &headerFields = this->parserHeader(headerLine, delimiter);
+    const std::vector<std::string> &headerFields = this->parseHeader(headerLine, delimiter);
     std::unordered_map<std::string, int> fieldLookup;
     // Validate that there are no extra fields in the file being loaded
     for (int fieldIndex = 0; fieldIndex < headerFields.size(); fieldIndex++) {
         const std::string &field = headerFields[fieldIndex];
-        if (dimensionFields.find(field) == dimensionFields.end() && field != "Time") {
-            /*if (arraySchema.attribute(field) == nullptr) {
-                std::cerr << field << " does not exists in array (" + array_uri + ")" << std::endl;
-                return buffers;
-            }*/
-        }
         fieldLookup.emplace(field, fieldIndex);
     }
 
     buffers = initBuffers(headerFields, staticColumns);
 
+    std::unordered_map<std::string, tiledb::Attribute> attributes = arraySchema.attributes();
+
     // Check to see if all dimensions are in file being loaded
-    for (const std::string &dimension : dimensionFields) {
+    for (const std::string &dimension : *dimensionFields) {
         // First check to see if dimension is in static map
-        if (staticColumns.find(dimension) != staticColumns.end() || dimension == "symbol_id")
+        if (staticColumns.find(dimension) != staticColumns.end() || mapColumns->find(dimension) != mapColumns->end() || dimension == "symbol_id"  || dimension == "datetime")
             continue;
 
         bool found = false;
@@ -168,7 +164,7 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
     ProgressBar progressBar(file_uri, linesInFile - 1, windowSize);
 
     int rowsParsed = 0;
-    unsigned long expectedFields = dimensionFields.size() /*- staticColumns.size()*/ + arraySchema.attribute_num();
+    //unsigned long expectedFields = dimensionFields.size() /*- staticColumns.size()*/ + arraySchema.attribute_num();
     std::cout << "starting parsing for " << file_uri << " which is " << linesInFile << " rows using batch size " << std::endl;
               //<< batchSize << std::endl;
     for (std::string line; std::getline(is, line);) {
@@ -177,19 +173,14 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
         if (totalRowsInFile == linesInFile - 2 && line.substr(0, 3) == "END") {
             break;
         }
-        //totalRows++;
         totalRowsInFile++;
-        /*if (fields.size() != expectedFields) {
-            std::cerr << "Line " << totalRowsInFile << " is missing fields! Line has " << fields.size() << " expected "
-                      << expectedFields << std::endl;
-        }*/
         if (arraySchema.attribute_num() > 0) {
             for (size_t fieldNum = 0; fieldNum < fields.size(); fieldNum++) {
                 const std::string &fieldName = headerFields[fieldNum];
                 // Skip dimensions
-                if (dimensionFields.find(fieldName) != dimensionFields.end())
+                if (dimensionFields->find(fieldName) != dimensionFields->end())
                     continue;
-                if (fieldName == "Time")
+                if (attributes.find(fieldName) == attributes.end())
                     continue;
                 std::string fieldValue = fields[fieldNum];
                 appendBuffer(fieldName, fieldValue, buffers.find(fieldName)->second);
@@ -199,11 +190,38 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
         for (const tiledb::Dimension &dimension : arraySchema.domain().dimensions()) {
             std::string value;
             auto fieldLookupEntry = fieldLookup.find(dimension.name());
+            auto mapColumnsEntry = mapColumns->find(dimension.name());
             if (fieldLookupEntry != fieldLookup.end()) {
                 int fieldIndex = fieldLookupEntry->second;
                 value = fields[fieldIndex];
+            } else if (mapColumnsEntry != mapColumns->end()) {
+                std::pair<std::string, std::unordered_map<std::string, std::string>*> mapping = mapColumnsEntry->second;
+                auto valueFieldIndex = fieldLookup.find(mapping.first);
+                if (valueFieldIndex == fieldLookup.end()) {
+                    std::cerr << "Could not find field " << mapping.first << " in file for column mapping of " << mapColumnsEntry->first << std::endl;
+                    return buffers;
+                }
+                std::string fieldValue = fields[valueFieldIndex->second];
+                std::shared_lock<std::shared_timed_mutex> readLock(mapColumnsMutex);
+                auto valueMap = mapping.second->find(fieldValue);
+                if (valueMap == mapping.second->end()) {
+                    readLock.unlock();
+                    std::lock_guard<std::shared_timed_mutex> writeLock(mapColumnsMutex);
+                    value = std::to_string(mapping.second->size());
+                    /*std::cerr << "Could not find field " << mapping.first << " value " << fieldValue
+                        << " in file for column mapping of " << mapColumnsEntry->first
+                        << " adding it as " << value << std::endl;*/
+                    mapping.second->emplace(fieldValue, value);
+                } else {
+                    value = valueMap->second;
+                }
             } else if (dimension.name() == "symbol_id") {
-                value = std::to_string(totalRowsInFile);
+                if (this->type == FileType::Master) {
+                    value = std::to_string(totalRowsInFile);
+                } else {
+                    std::cerr << "Error symbol_id unhandled in non master file" << std::endl;
+                    return buffers;
+                }
             } else if (dimension.name() == "datetime") {
                 auto timeLookupEntry = fieldLookup.find("Time");
                 if (timeLookupEntry != fieldLookup.end()) {
@@ -277,12 +295,15 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter, 
             std::cerr << "File " << file_uri << " missing static columns mapping!! Aborting!!" << std::endl;
             return -1;
         }
-        std::unordered_map<std::string, std::string> ignoreColumns;
-        if (ignoreColumnsForFiles.find(file_uri) != ignoreColumnsForFiles.end())
-            ignoreColumns = ignoreColumnsForFiles.find(file_uri)->second;
         std::unordered_map<std::string, std::string> staticColumns = staticColumnsForFiles.find(file_uri)->second;
+        std::shared_ptr<std::unordered_map<std::string, std::pair<std::string, std::unordered_map<std::string, std::string>*>>> mapColumns = nullptr;
+        auto mapColumnsForFilesEntry = mapColumnsForFiles.find(file_uri);
+        if (mapColumnsForFilesEntry != mapColumnsForFiles.end())
+            mapColumns = mapColumnsForFilesEntry->second;
+        else
+            mapColumns = std::make_shared<std::unordered_map<std::string, std::pair<std::string, std::unordered_map<std::string, std::string>*>>>();
         //auto result = pool.enqueue(loadJob(file_uri, staticColumns, dimensionFields));
-        results.push_back(pool.enqueue(staticLoadJob, this, file_uri, staticColumns, ignoreColumns, dimensionFields, delimiter, arraySchema));
+        results.push_back(pool.enqueue(staticLoadJob, this, file_uri, staticColumns, mapColumns, &dimensionFields, delimiter, arraySchema));
     }
 
     for(auto &result : results) {
@@ -295,11 +316,6 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter, 
             auto globalBuffer = globalBuffers.find(bufferName);
             if (globalBuffer != globalBuffers.end()) {
                 if (entry.second->offsets != nullptr) {
-                    //globalBuffer->second->offsets->insert( globalBuffer->second->offsets->end(), entry.second->offsets->begin(), entry.second->offsets->end() );
-                    /*size_t scaleFactor = std::static_pointer_cast<std::vector<void>>(globalBuffer->second->values)->size();
-                    for(auto offset : *entry.second->offsets) {
-                        globalBuffer->second->offsets->push_back(offset + scaleFactor);
-                    }*/
                     concatOffsets(globalBuffer->second->offsets, entry.second->offsets, globalBuffer->second->values, entry.second->datatype);
                     entry.second->offsets.reset();
                 }
@@ -311,7 +327,6 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter, 
                 globalBuffers.emplace(bufferName, entry.second);
             }
         }
-        //if (globalBuffers.begin()->second->values)
     }
 
     if (submit_query() == tiledb::Query::Status::FAILED) {

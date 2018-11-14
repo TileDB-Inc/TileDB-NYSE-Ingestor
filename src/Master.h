@@ -42,7 +42,7 @@
 namespace nyse {
     class Master : public Array {
     public:
-        Master(std::string array_name);
+        Master(std::string array_name, char delimiter);
 
         /**
          * Create master symbol array
@@ -62,6 +62,8 @@ namespace nyse {
         uint64_t readSample(std::string outfile, std::string delimiter) {
             return 0;
         };
+
+        static std::unordered_map<std::string, std::string> buildSymbolIds(tiledb::Context ctx, const std::string &master_file, const char &delimiter);
     };
 }
 

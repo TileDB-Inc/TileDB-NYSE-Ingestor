@@ -38,11 +38,13 @@
 #include <chrono>
 
 
-nyse::Master::Master(std::string array_name) {
+nyse::Master::Master(std::string array_name, char delimiter) {
     this->array_uri = std::move(array_name);
     tiledb::Config config;
     config.set("sm.dedup_coords", "true");
     this->ctx = std::make_shared<tiledb::Context>(config);
+    this->delimiter = delimiter;
+    this->type = FileType::Master;
 }
 
 void nyse::Master::createArray(tiledb::FilterList coordinate_filter_list, tiledb::FilterList offset_filter_list,
@@ -172,4 +174,40 @@ int nyse::Master::load(const std::vector<std::string> file_uris, char delimiter,
         this->staticColumnsForFiles.emplace(file_uri, fileStaticColumns);
     }
     return Array::load(file_uris, delimiter, batchSize, threads);
+}
+
+std::unordered_map<std::string, std::string> nyse::Master::buildSymbolIds(tiledb::Context ctx, const std::string &master_file, const char &delimiter) {
+    std::unordered_map<std::string, std::string> symbolMapping;
+    //tiledb::VFS vfs(ctx);
+    //tiledb::VFS::filebuf filebuf(vfs);
+    //filebuf.open(master_file, std::ios::in);
+
+    //std::istream is(&filebuf);
+
+    std::ifstream is(master_file);
+
+    // Read all contents from the file
+    std::string headerLine;
+    std::getline(is, headerLine);
+
+    // Parse the header row, this is a virtual function because Trade data needs to remove spaces from header columns
+    const std::vector<std::string> &headerFields = split(headerLine, delimiter);
+
+    size_t symbolField = 0;
+
+    for (size_t index = 0; index < headerFields.size(); index++) {
+        const std::string &fieldName = headerFields[index];
+        if (fieldName == "Symbol") {
+            symbolField = index;
+            break;
+        }
+    }
+
+    uint32_t totalRowsInFile = 0;
+    for (std::string line; std::getline(is, line);) {
+        std::vector<std::string> fields = split(line, delimiter);
+        symbolMapping[fields[symbolField]] = std::to_string(++totalRowsInFile);
+    }
+
+    return symbolMapping;
 }

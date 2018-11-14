@@ -35,11 +35,14 @@
 #include <tiledb/tiledb>
 #include <fstream>
 
-nyse::Quote::Quote(std::string array_name) {
+nyse::Quote::Quote(std::string array_name, std::string master_file, char delimiter) {
     this->array_uri = std::move(array_name);
     tiledb::Config config;
     config.set("sm.dedup_coords", "true");
     this->ctx = std::make_shared<tiledb::Context>(config);
+    this->type = FileType::Quote;
+
+    this->master_file = master_file;
 }
 
 void nyse::Quote::createArray(tiledb::FilterList coordinate_filter_list, tiledb::FilterList offset_filter_list,
@@ -49,10 +52,12 @@ void nyse::Quote::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
         return;
 
     tiledb::Domain domain(*ctx);
+
     // time
-/*    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 1}}, 1000000000));
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 1}}, YYYYMMDDHHMMSSXXXXXXXXX));*/
     domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 60UL*60*1000000000}}, 60UL*60*1000000000));
+
+    // symbol_id
+    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "symbol_id", {{0, 10000}}, 100));
 
     // Store up to 2 years of data in array
     //domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "date", {{1, 20381231}}, 31));
@@ -124,12 +129,19 @@ void nyse::Quote::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
 }
 
 int nyse::Quote::load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize, uint32_t threads) {
+    std::unordered_map<std::string, std::string> symbol_lookup = nyse::Master::buildSymbolIds(*ctx, master_file, delimiter);
+    std::unordered_map<std::string, std::pair<std::string, std::unordered_map<std::string, std::string>*>> mapColumns = {{"symbol_id",{"Symbol", &symbol_lookup}}};
+    std::shared_ptr<std::unordered_map<std::string, std::pair<std::string, std::unordered_map<std::string, std::string>*>>> mapColumnsPtr =
+            std::make_shared<std::unordered_map<std::string, std::pair<std::string, std::unordered_map<std::string, std::string>*>>>(mapColumns);
+
     for (std::string file_uri : file_uris) {
         auto fileSplits = split(file_uri, '_');
         std::unordered_map<std::string, std::string> fileStaticColumns;
         fileStaticColumns.emplace("date", fileSplits.back());
         fileStaticColumns.emplace("datetime", fileSplits.back());
         this->staticColumnsForFiles.emplace(file_uri, fileStaticColumns);
+
+        this->mapColumnsForFiles.emplace(file_uri, mapColumnsPtr);
     }
     return Array::load(file_uris, delimiter, batchSize, threads);
 }
