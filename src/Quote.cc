@@ -53,11 +53,11 @@ void nyse::Quote::createArray(tiledb::FilterList coordinate_filter_list, tiledb:
 
     tiledb::Domain domain(*ctx);
 
-    // time
-    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 60UL*60*1000000000}}, 60UL*60*1000000000));
-
     // symbol_id
     domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "symbol_id", {{0, 10000}}, 100));
+
+    // time
+    domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "datetime", {{0, UINT64_MAX - 60UL*60*1000000000}}, 60UL*60*1000000000));
 
     // Store up to 2 years of data in array
     //domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "date", {{1, 20381231}}, 31));
