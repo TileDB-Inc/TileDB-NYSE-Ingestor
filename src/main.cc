@@ -41,8 +41,6 @@
 #include "Trade.h"
 #include "utils.h"
 
-enum class FileType : int { UNKNOWN, Master, Quote, Trade };
-
 std::istream &operator>>(std::istream &in, FileType &fileType) {
     std::string s;
     in >> s;
@@ -65,6 +63,9 @@ int main(int argc, char** argv) {
 
     std::vector<std::string> filename;
     app.add_option("-f,--files", filename, "csv files to load", false);
+
+    std::string masterFilename;
+    app.add_option("-m,--master_file", masterFilename, "master file used for symbol id", false);
 
     std::string arrayUri;
     app.add_option("-a,--array,--array_uri", arrayUri, "URI for array loading", false);
@@ -107,24 +108,32 @@ int main(int argc, char** argv) {
 
     if (filename.empty() && !createArray && !readSample) {
         std::cerr << "Filename is required unless --create or --read is passed" << std::endl;
-        return 0;
+        return 1;
     }
 
     if (fileType == FileType::UNKNOWN) {
         std::cerr << "Unknown filetype passed, must be one of {Master, Quote, Trade}" << std::endl;
-        return 0;
+        return 1;
     }
 
     std::unique_ptr<nyse::Array> array;
     if (fileType == FileType::Master) {
-        array = std::make_unique<nyse::Master>(arrayUri);
+        array = std::make_unique<nyse::Master>(arrayUri, delimiter.c_str()[0]);
     } else if (fileType == FileType::Quote) {
-        array = std::make_unique<nyse::Quote>(arrayUri);
+        if (masterFilename.empty() && !createArray) {
+            std::cerr << "--master_file is required for Quote array loading" << std::endl;
+            return 1;
+        }
+        array = std::make_unique<nyse::Quote>(arrayUri, masterFilename, delimiter.c_str()[0]);
     } else if (fileType == FileType::Trade) {
-        array = std::make_unique<nyse::Trade>(arrayUri);
+        if (masterFilename.empty() && !createArray) {
+            std::cerr << "--master_file is required for Trade array loading" << std::endl;
+            return 1;
+        }
+        array = std::make_unique<nyse::Trade>(arrayUri, masterFilename, delimiter.c_str()[0]);
     }
-    if (createArray) {
 
+    if (createArray) {
         tiledb::FilterList coordinate_filter_list(*array->getCtx());
         tiledb::FilterList offset_filter_list(*array->getCtx());
         tiledb::FilterList attribute_filter_list(*array->getCtx());
@@ -146,7 +155,6 @@ int main(int argc, char** argv) {
         array->createArray(coordinate_filter_list, offset_filter_list, attribute_filter_list);
         return 0;
     }
-
 
     if (consolidate) {
         auto startTime = std::chrono::steady_clock::now();

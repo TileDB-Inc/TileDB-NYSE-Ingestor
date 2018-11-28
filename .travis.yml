@@ -22,5 +22,5 @@ script:
     - ./build/NYSE_Ingestor/NYSE_Ingestor --array "./test_arrays/quote" --type Quote --create
     - ./build/NYSE_Ingestor/NYSE_Ingestor --array "./test_arrays/trade" --type Trade --create
     - ./build/NYSE_Ingestor/NYSE_Ingestor --array "./test_arrays/master" --type Master --files "./sample_data/small_EQY_US_ALL_REF_MASTER_20180306"
-    - ./build/NYSE_Ingestor/NYSE_Ingestor --array "./test_arrays/quote" --type Quote --files "./sample_data/small_SPLITS_US_ALL_BBO_Z_20180730"
-    - ./build/NYSE_Ingestor/NYSE_Ingestor --array "./test_arrays/trade" --type Trade --files "./sample_data/small_EQY_US_ALL_TRADE_20180730"
+    - ./build/NYSE_Ingestor/NYSE_Ingestor --array "./test_arrays/quote" --type Quote --files "./sample_data/small_SPLITS_US_ALL_BBO_Z_20180730" --master_file "./sample_data/small_EQY_US_ALL_REF_MASTER_20180306"
+    - ./build/NYSE_Ingestor/NYSE_Ingestor --array "./test_arrays/trade" --type Trade --files "./sample_data/small_EQY_US_ALL_TRADE_20180730" --master_file "./sample_data/small_EQY_US_ALL_REF_MASTER_20180306"

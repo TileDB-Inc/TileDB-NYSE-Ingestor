@@ -37,11 +37,12 @@
 
 #include <string>
 #include "Array.h"
+#include "Master.h"
 
 namespace nyse {
     class Trade : public Array {
     public:
-        Trade(std::string array_name);
+        Trade(std::string array_name, std::string master_file, char delimiter);
 
         /**
          * Create trade array
@@ -55,7 +56,7 @@ namespace nyse {
          * @param delimiter
          * @return vector containing field names in order from file
          */
-        std::vector<std::string> parserHeader(std::string headerLine, char delimiter) override;
+        std::vector<std::string> parseHeader(std::string headerLine, char delimiter) override;
 
         /**
          * Load trade data into array
@@ -67,6 +68,8 @@ namespace nyse {
         int load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize, uint32_t threads) override;
 
         uint64_t readSample(std::string outfile, std::string delimiter);
+
+        std::string master_file;
     };
 }
 

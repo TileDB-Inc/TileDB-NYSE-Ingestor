@@ -39,7 +39,11 @@
 #include <chrono>
 #include <iomanip>
 #include <memory>
+#include <mutex>
+#include <shared_mutex>
 #include "buffer.h"
+
+enum class FileType : int { UNKNOWN, Master, Quote, Trade };
 
 namespace nyse {
     /**
@@ -96,7 +100,7 @@ namespace nyse {
          * @param delimiter
          * @return vector containing field names in order from file
          */
-        virtual std::vector<std::string> parserHeader(std::string headerLine, char delimiter);
+        virtual std::vector<std::string> parseHeader(std::string headerLine, char delimiter);
 
         /**
          * Append a string value from the delimited data value to a given buffer
@@ -126,12 +130,12 @@ namespace nyse {
          * @param arraySchema
          * @return
          */
-        std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> parseFileToBuffer(std::string file_uri,
+        std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> parseFileToBuffer(const std::string &file_uri,
                                                                                          std::unordered_map<std::string, std::string> staticColumns,
-                                                                                         std::unordered_map<std::string, std::string> ignoreColumns,
-                                                                                         std::set<std::string> dimensionFields,
+                                                                                         std::shared_ptr<std::unordered_map<std::string, std::pair<std::string, std::unordered_map<std::string, std::string>*>>> mapColumns,
+                                                                                         std::set<std::string> *dimensionFields,
                                                                                          char delimiter,
-                                                                                         tiledb::ArraySchema arraySchema);
+                                                                                         tiledb::ArraySchema &arraySchema);
 
         /**
          * Get tiledb context shared ptr
@@ -163,7 +167,6 @@ namespace nyse {
 
         // Static columns allows defining a constant value for a given column for all rows, i.e. date.
         std::unordered_map<std::string, std::unordered_map<std::string, std::string>> staticColumnsForFiles;
-        std::unordered_map<std::string, std::unordered_map<std::string, std::string>> ignoreColumnsForFiles;
         std::unordered_map<std::string, std::shared_ptr<buffer>> globalBuffers;
 
         void concatBuffers(std::shared_ptr<void> globalBuffer, std::shared_ptr<void> bufferToAppend, tiledb_datatype_t datatype);
@@ -171,6 +174,14 @@ namespace nyse {
         void concatOffsets(std::shared_ptr<std::vector<uint64_t>> globalOffsets, std::shared_ptr<std::vector<uint64_t>> bufferOffsets, std::shared_ptr<void> values, tiledb_datatype_t datatype);
 
         uint64_t buffer_size = 10*1024*1024;
+
+        char delimiter;
+
+        FileType type;
+
+        std::shared_timed_mutex mapColumnsMutex;
+        std::unordered_map<std::string, std::shared_ptr<std::unordered_map<std::string, std::pair<std::string, std::unordered_map<std::string, std::string>*>>>> mapColumnsForFiles;
+
     };
 }
 
