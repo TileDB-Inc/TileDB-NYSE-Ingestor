@@ -39,6 +39,7 @@
 #include <ProgressBar.hpp>
 #include <utils.h>
 #include <ThreadPool.h>
+#include <date/tz.h>
 
 #ifdef __LINUX__
 #include <sys/ioctl.h>
@@ -91,14 +92,16 @@ std::shared_ptr<void> nyse::createBuffer(tiledb_datatype_t datatype) {
 
 static std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> staticLoadJob(nyse::Array *array, std::string file_uri,
                                                                                     std::unordered_map<std::string, std::string> staticColumns,
+                                                                                    std::unordered_map<std::string, std::string> ignoreColumns,
                                                                                     std::set<std::string> dimensionFields,
                                                                                     char delimiter,
                                                                                     tiledb::ArraySchema arraySchema) {
-    return array->parseFileToBuffer(file_uri, staticColumns, dimensionFields, delimiter, arraySchema);
+    return array->parseFileToBuffer(file_uri, staticColumns, ignoreColumns, dimensionFields, delimiter, arraySchema);
 }
 
 std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::parseFileToBuffer(std::string file_uri,
         std::unordered_map<std::string, std::string> staticColumns,
+        std::unordered_map<std::string, std::string> ignoreColumns,
         std::set<std::string> dimensionFields,
         char delimiter,
         tiledb::ArraySchema arraySchema) {
@@ -123,11 +126,11 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
     // Validate that there are no extra fields in the file being loaded
     for (int fieldIndex = 0; fieldIndex < headerFields.size(); fieldIndex++) {
         const std::string &field = headerFields[fieldIndex];
-        if (dimensionFields.find(field) == dimensionFields.end()) {
-            if (arraySchema.attribute(field) == nullptr) {
+        if (dimensionFields.find(field) == dimensionFields.end() && field != "Time") {
+            /*if (arraySchema.attribute(field) == nullptr) {
                 std::cerr << field << " does not exists in array (" + array_uri + ")" << std::endl;
                 return buffers;
-            }
+            }*/
         }
         fieldLookup.emplace(field, fieldIndex);
     }
@@ -165,7 +168,7 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
     ProgressBar progressBar(file_uri, linesInFile - 1, windowSize);
 
     int rowsParsed = 0;
-    unsigned long expectedFields = dimensionFields.size() - staticColumns.size() + arraySchema.attribute_num();
+    unsigned long expectedFields = dimensionFields.size() /*- staticColumns.size()*/ + arraySchema.attribute_num();
     std::cout << "starting parsing for " << file_uri << " which is " << linesInFile << " rows using batch size " << std::endl;
               //<< batchSize << std::endl;
     for (std::string line; std::getline(is, line);) {
@@ -176,17 +179,21 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
         }
         //totalRows++;
         totalRowsInFile++;
-        if (fields.size() != expectedFields) {
+        /*if (fields.size() != expectedFields) {
             std::cerr << "Line " << totalRowsInFile << " is missing fields! Line has " << fields.size() << " expected "
                       << expectedFields << std::endl;
-        }
-        for (size_t fieldNum = 0; fieldNum < fields.size(); fieldNum++) {
-            const std::string &fieldName = headerFields[fieldNum];
-            // Skip dimensions
-            if (dimensionFields.find(fieldName) != dimensionFields.end())
-                continue;
-            std::string fieldValue = fields[fieldNum];
-            appendBuffer(fieldName, fieldValue, buffers.find(fieldName)->second);
+        }*/
+        if (arraySchema.attribute_num() > 0) {
+            for (size_t fieldNum = 0; fieldNum < fields.size(); fieldNum++) {
+                const std::string &fieldName = headerFields[fieldNum];
+                // Skip dimensions
+                if (dimensionFields.find(fieldName) != dimensionFields.end())
+                    continue;
+                if (fieldName == "Time")
+                    continue;
+                std::string fieldValue = fields[fieldNum];
+                appendBuffer(fieldName, fieldValue, buffers.find(fieldName)->second);
+            }
         }
 
         for (const tiledb::Dimension &dimension : arraySchema.domain().dimensions()) {
@@ -197,6 +204,28 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
                 value = fields[fieldIndex];
             } else if (dimension.name() == "symbol_id") {
                 value = std::to_string(totalRowsInFile);
+            } else if (dimension.name() == "datetime") {
+                auto timeLookupEntry = fieldLookup.find("Time");
+                if (timeLookupEntry != fieldLookup.end()) {
+                    std::string time = fields[timeLookupEntry->second];
+                    std::string nanoseconds_str = time.substr(time.length()-9, 9);
+                    std::string hms = time.substr(0, time.length()-9);
+                    std::string date = staticColumnsForFiles.find(file_uri)->second.find("date")->second;
+                    std::tm tm = {};
+                    std::string datetime = date + hms + "-0400";
+
+                    date::sys_time<std::chrono::nanoseconds> t;
+                    std::istringstream stream{datetime};
+                    stream >> date::parse("%Y%m%d%H%M%S%z", t);
+                    if (stream.fail())
+                        throw std::runtime_error("failed to parse " + datetime);
+
+                    auto nanoseconds = std::chrono::nanoseconds(std::stoll(nanoseconds_str));
+                    auto finalTime = t + nanoseconds;
+
+                    auto UTC = date::make_zoned("GMT", finalTime).get_local_time();
+                    value = std::to_string(std::chrono::duration_cast<std::chrono::nanoseconds>(UTC.time_since_epoch()).count());
+                }
             } else {
                 auto staticColumnsForFile = staticColumnsForFiles.find(file_uri);
                 if (staticColumnsForFile == staticColumnsForFiles.end()) {
@@ -219,9 +248,6 @@ std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> nyse::Array::pars
 }
 
 int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize, uint32_t threads) {
-    tiledb::Config config;
-    config.set("sm.dedup_coords", "true");
-    ctx = std::make_unique<tiledb::Context>(config);
     //tiledb::VFS vfs(ctx);
     //tiledb::VFS::filebuf buff(vfs);
     unsigned long totalRows = 0;
@@ -251,23 +277,30 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter, 
             std::cerr << "File " << file_uri << " missing static columns mapping!! Aborting!!" << std::endl;
             return -1;
         }
+        std::unordered_map<std::string, std::string> ignoreColumns;
+        if (ignoreColumnsForFiles.find(file_uri) != ignoreColumnsForFiles.end())
+            ignoreColumns = ignoreColumnsForFiles.find(file_uri)->second;
         std::unordered_map<std::string, std::string> staticColumns = staticColumnsForFiles.find(file_uri)->second;
         //auto result = pool.enqueue(loadJob(file_uri, staticColumns, dimensionFields));
-        results.push_back(pool.enqueue(staticLoadJob, this, file_uri, staticColumns, dimensionFields, delimiter, arraySchema));
+        results.push_back(pool.enqueue(staticLoadJob, this, file_uri, staticColumns, ignoreColumns, dimensionFields, delimiter, arraySchema));
     }
 
     for(auto &result : results) {
         auto buffers = result.get();
         for (auto entry : buffers) {
             std::string bufferName = entry.first;
+            if (bufferName == TILEDB_COORDS) {
+                totalRows += std::static_pointer_cast<std::vector<uint64_t>>(entry.second->values)->size() / dimensionFields.size();
+            }
             auto globalBuffer = globalBuffers.find(bufferName);
             if (globalBuffer != globalBuffers.end()) {
                 if (entry.second->offsets != nullptr) {
                     //globalBuffer->second->offsets->insert( globalBuffer->second->offsets->end(), entry.second->offsets->begin(), entry.second->offsets->end() );
-                    size_t scaleFactor = globalBuffer->second->offsets->size();
+                    /*size_t scaleFactor = std::static_pointer_cast<std::vector<void>>(globalBuffer->second->values)->size();
                     for(auto offset : *entry.second->offsets) {
                         globalBuffer->second->offsets->push_back(offset + scaleFactor);
-                    }
+                    }*/
+                    concatOffsets(globalBuffer->second->offsets, entry.second->offsets, globalBuffer->second->values, entry.second->datatype);
                     entry.second->offsets.reset();
                 }
                 if (entry.second->values != nullptr) {
@@ -288,7 +321,6 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter, 
     query->finalize();
 
     array->close();
-
 
     auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
     printf("loaded %ld rows in %s (%.2f rows/second)\n",totalRows, beautify_duration(duration).c_str(), (float(totalRows)) / duration.count());
@@ -359,6 +391,9 @@ void nyse::Array::appendBuffer(const std::string &fieldName, const std::string &
                     value = "NULL";
                 }
                 buffer->offsets->push_back(values->size());
+            }
+            if (valueConst.empty()) {
+                value = " ";
             }
             for(const char &c : value) {
                 values->emplace_back(c);
@@ -608,4 +643,110 @@ void nyse::Array::concatBuffers(std::shared_ptr<void> globalBuffer, std::shared_
             break;
         }
     }
+}
+
+void nyse::Array::concatOffsets(std::shared_ptr<std::vector<uint64_t>> globalOffsets,
+        std::shared_ptr<std::vector<uint64_t>> bufferOffsets,
+        std::shared_ptr<void> globalValuesBuffer, tiledb_datatype_t datatype) {
+    switch (datatype) {
+        case tiledb_datatype_t::TILEDB_INT32: {
+            std::shared_ptr<std::vector<int32_t>> globalBufferCast = std::static_pointer_cast<std::vector<int32_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_INT64: {
+            std::shared_ptr<std::vector<int64_t>> globalBufferCast = std::static_pointer_cast<std::vector<int64_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_FLOAT32: {
+            std::shared_ptr<std::vector<float>> globalBufferCast = std::static_pointer_cast<std::vector<float>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_FLOAT64: {
+            std::shared_ptr<std::vector<double>> globalBufferCast = std::static_pointer_cast<std::vector<double>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_INT8: {
+            std::shared_ptr<std::vector<int8_t>> globalBufferCast = std::static_pointer_cast<std::vector<int8_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_UINT8: {
+            std::shared_ptr<std::vector<uint8_t>> globalBufferCast = std::static_pointer_cast<std::vector<uint8_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_INT16: {
+            std::shared_ptr<std::vector<int16_t>> globalBufferCast = std::static_pointer_cast<std::vector<int16_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_UINT16: {
+            std::shared_ptr<std::vector<uint16_t>> globalBufferCast = std::static_pointer_cast<std::vector<uint16_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_UINT32: {
+            std::shared_ptr<std::vector<uint32_t>> globalBufferCast = std::static_pointer_cast<std::vector<uint32_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_UINT64: {
+            std::shared_ptr<std::vector<uint64_t>> globalBufferCast = std::static_pointer_cast<std::vector<uint64_t>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+        case tiledb_datatype_t::TILEDB_CHAR:
+        case tiledb_datatype_t::TILEDB_STRING_ASCII:
+        case tiledb_datatype_t::TILEDB_STRING_UTF8:
+        case tiledb_datatype_t::TILEDB_STRING_UTF16:
+        case tiledb_datatype_t::TILEDB_STRING_UTF32:
+        case tiledb_datatype_t::TILEDB_STRING_UCS2:
+        case tiledb_datatype_t::TILEDB_STRING_UCS4:
+        case tiledb_datatype_t::TILEDB_ANY: {
+            std::shared_ptr<std::vector<char>> globalBufferCast = std::static_pointer_cast<std::vector<char>>(globalValuesBuffer);
+            size_t scaleFactor = globalBufferCast->size();
+            for(auto offset : *bufferOffsets) {
+                globalOffsets->push_back(offset + scaleFactor);
+            }
+            break;
+        }
+    }
+}
+
+const std::shared_ptr<tiledb::Context> &nyse::Array::getCtx() const {
+    return ctx;
 }

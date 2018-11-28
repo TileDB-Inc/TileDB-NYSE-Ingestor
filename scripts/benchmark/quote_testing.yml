@@ -1,0 +1,36 @@
+base_command: ../../build/NYSE_Ingestor
+# Iterations to run
+iterations: 3
+# Files used for ingestion
+ingestion_files:
+  - "/data/quote/SPLITS_US_ALL_BBO_Y_20180730"
+
+# List of suites to run for benchmarking
+suites:
+  lz4:
+    array_uri: /data/seth_testing/quote/lz4_test/array
+    group_uri: /data/seth_testing/quote/lz4_test
+    tests:
+    - name: create
+      rmdir: /data/seth_testing/quote/lz4_test
+      args:
+        - "--create"
+        - "--attribute_filters"
+        - "LZ4"
+        - "--offset_filters"
+        - "LZ4"
+        - "--coordinate_filters"
+        - "LZ4"
+        - "--type"
+        - "quote"
+    - name: store
+      check_array_size: TRUE
+      args:
+        - "--type"
+        - "quote"
+    - name: export
+      args:
+        - "--type"
+        - "quote"
+        - "--read"
+

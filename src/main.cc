@@ -88,10 +88,25 @@ int main(int argc, char** argv) {
     bool consolidate = false;
     app.add_flag("--consolidate", consolidate, "Consolidate array");
 
+    bool readSample = false;
+    app.add_flag("--read", readSample, "read sample data from array for testing");
+
+    std::string writeFile;
+    app.add_option("--write-file", writeFile, "File to write csv format data from read");
+
+    std::vector<std::string> coordinate_filters;
+    app.add_option("--coordinate_filters", coordinate_filters, "List of filters to apply to coordinates", false);
+
+    std::vector<std::string> offset_filters;
+    app.add_option("--offset_filters", offset_filters, "List of filters to apply to offsets", false);
+
+    std::vector<std::string> attribute_filters;
+    app.add_option("--attribute_filters", attribute_filters, "List of filters to apply to attributes", false);
+
     CLI11_PARSE(app, argc, argv);
 
-    if (filename.empty() && !createArray) {
-        std::cerr << "Filename is required unless --create is passed" << std::endl;
+    if (filename.empty() && !createArray && !readSample) {
+        std::cerr << "Filename is required unless --create or --read is passed" << std::endl;
         return 0;
     }
 
@@ -109,7 +124,26 @@ int main(int argc, char** argv) {
         array = std::make_unique<nyse::Trade>(arrayUri);
     }
     if (createArray) {
-        array->createArray();
+
+        tiledb::FilterList coordinate_filter_list(*array->getCtx());
+        tiledb::FilterList offset_filter_list(*array->getCtx());
+        tiledb::FilterList attribute_filter_list(*array->getCtx());
+        if (!coordinate_filters.empty()) {
+            nyse::create_filter_list_from_str(*array->getCtx(), coordinate_filter_list, coordinate_filters);
+        } else {
+            coordinate_filter_list.add_filter({*array->getCtx(), TILEDB_FILTER_DOUBLE_DELTA}).add_filter({*array->getCtx(), TILEDB_FILTER_ZSTD});
+        }
+        if (!offset_filters.empty()) {
+            nyse::create_filter_list_from_str(*array->getCtx(), offset_filter_list, offset_filters);
+        } else {
+            offset_filter_list.add_filter({*array->getCtx(), TILEDB_FILTER_DOUBLE_DELTA}).add_filter({*array->getCtx(), TILEDB_FILTER_ZSTD});
+        }
+        if (!attribute_filters.empty()) {
+            nyse::create_filter_list_from_str(*array->getCtx(), attribute_filter_list, attribute_filters);
+        } else {
+            attribute_filter_list.add_filter({*array->getCtx(), TILEDB_FILTER_ZSTD});
+        }
+        array->createArray(coordinate_filter_list, offset_filter_list, attribute_filter_list);
         return 0;
     }
 
@@ -121,6 +155,16 @@ int main(int argc, char** argv) {
 
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
         printf("consolidated in %s\n", nyse::beautify_duration(duration).c_str());
+        return 0;
+    }
+
+    if (readSample) {
+        auto startTime = std::chrono::steady_clock::now();
+        uint64_t rows = array->readSample(writeFile, delimiter);
+
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::steady_clock::now() - startTime);
+        printf("read %lu rows in %s (%.2f rows/second)\n", rows, nyse::beautify_duration(duration).c_str(), float(rows) / duration.count());
+
         return 0;
     }
 

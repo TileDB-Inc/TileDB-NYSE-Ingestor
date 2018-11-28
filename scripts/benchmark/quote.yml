@@ -1,0 +1,815 @@
+base_command: ../../build/NYSE_Ingestor
+# Iterations to run
+iterations: 3
+# Files used for ingestion
+ingestion_files:
+  - "/data/quote/SPLITS_US_ALL_BBO_K_20180730"
+
+# List of suites to run for benchmarking
+suites:
+  lz4:
+    array_uri: /data/seth_testing/quote/lz4_test/array
+    group_uri: /data/seth_testing/quote/lz4_test
+    tests:
+    - name: create
+      rmdir: /data/seth_testing/quote/lz4_test
+      args:
+        - "--create"
+        - "--attribute_filters"
+        - "LZ4"
+        - "--offset_filters"
+        - "LZ4"
+        - "--coordinate_filters"
+        - "LZ4"
+        - "--type"
+        - "quote"
+    - name: store
+      check_array_size: TRUE
+      args:
+        - "--type"
+        - "quote"
+    - name: export
+      args:
+        - "--type"
+        - "quote"
+        - "--read"
+  bzip2:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/bzip2_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/bzip2_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+        - "--create"
+        - "--attribute_filters"
+        - "BZIP2"
+        - "--offset_filters"
+        - "BZIP2"
+        - "--coordinate_filters"
+        - "BZIP2"
+        - "--type"
+        - "quote"
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  gzip:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/gzip_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/gzip_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "GZIP"
+      - "--offset_filters"
+      - "GZIP"
+      - "--coordinate_filters"
+      - "GZIP"
+      - "--type"
+      - "quote"
+    - name: store
+      check_array_size: TRUE
+      args:
+        - "--type"
+        - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  zstd:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/zstd_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/zstd_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "ZSTD"
+      - "--offset_filters"
+      - "ZSTD"
+      - "--coordinate_filters"
+      - "ZSTD"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+        - "--type"
+        - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+#  rle:
+#    # Folder used for tilevcf group, also removed before each suite iteration is run
+#    group_uri: /data/seth_testing/quote/rle_test
+#    # Uri of actual array for checking sizes
+#    array_uri: /data/seth_testing/quote/rle_test/array
+#    # Tests is an array containing each test to run for the suite
+#    tests:
+#    # Name of test
+#    - name: create
+#      # Arguments to pass to base command
+#      args:
+#      - "--create"
+#      - "-a"
+#      - "GT,DP,GQ,MIN_DP"
+#      - "--attribute_filters"
+#      - "RLE"
+#      - "--offset_filters"
+#      - "RLE"
+#      - "--coordinate_filters"
+#      - "RLE"
+#    - name: register
+#      args:
+#      - "register"
+#    - name: store
+#      check_array_size: TRUE
+#      args:
+#      - "store"
+#      - "-t"
+#      - "16"
+#      - "-m"
+#      - "50"
+#      - "-c"
+#      - "25000000"
+#    - name: export
+#      args:
+#      - "export"
+#      - "-s"
+#      - "soDozTcS"
+#      - "-o"
+#      - "v"
+
+  # bit shuffles
+  bitshuffle_lz4:
+    array_uri: /data/seth_testing/quote/bitshuffle_lz4_test/array
+    group_uri: /data/seth_testing/quote/bitshuffle_lz4_test
+    tests:
+    - name: create
+      rmdir: /data/seth_testing/quote/bitshuffle_lz4_test
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "BITSHUFFLE,LZ4"
+      - "--offset_filters"
+      - "BITSHUFFLE,LZ4"
+      - "--coordinate_filters"
+      - "BITSHUFFLE,LZ4"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  bitshuffle_bzip2:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/bitshuffle_bzip2_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/bitshuffle_bzip2_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "BITSHUFFLE,BZIP2"
+      - "--offset_filters"
+      - "BITSHUFFLE,BZIP2"
+      - "--coordinate_filters"
+      - "BITSHUFFLE,BZIP2"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  bitshuffle_gzip:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/bitshuffle_gzip_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/bitshuffle_gzip_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "BITSHUFFLE,GZIP"
+      - "--offset_filters"
+      - "BITSHUFFLE,GZIP"
+      - "--coordinate_filters"
+      - "BITSHUFFLE,GZIP"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  bitshuffle_zstd:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/bitshuffle_zstd_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/bitshuffle_zstd_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "BITSHUFFLE,ZSTD"
+      - "--offset_filters"
+      - "BITSHUFFLE,ZSTD"
+      - "--coordinate_filters"
+      - "BITSHUFFLE,ZSTD"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+#  bitshuffle_rle:
+#    # Folder used for tilevcf group, also removed before each suite iteration is run
+#    group_uri: /data/seth_testing/quote/bitshuffle_rle_test
+#    # Uri of actual array for checking sizes
+#    array_uri: /data/seth_testing/quote/bitshuffle_rle_test/array
+#    # Tests is an array containing each test to run for the suite
+#    tests:
+#    # Name of test
+#    - name: create
+#      # Arguments to pass to base command
+#      args:
+#      - "--create"
+#      - "-a"
+#      - "GT,DP,GQ,MIN_DP"
+#      - "--attribute_filters"
+#      - "BITSHUFFLE,RLE"
+#      - "--offset_filters"
+#      - "BITSHUFFLE,RLE"
+#      - "--coordinate_filters"
+#      - "BITSHUFFLE,RLE"
+#    - name: register
+#      args:
+#      - "register"
+#    - name: store
+#      check_array_size: TRUE
+#      args:
+#      - "store"
+#      - "-t"
+#      - "16"
+#      - "-m"
+#      - "50"
+#      - "-c"
+#      - "25000000"
+#    - name: export
+#      args:
+#      - "export"
+#      - "-s"
+#      - "soDozTcS"
+#      - "-o"
+#      - "v"
+
+  # byteshuffles
+  byteshuffle_lz4:
+    array_uri: /data/seth_testing/quote/byteshuffle_lz4_test/array
+    group_uri: /data/seth_testing/quote/byteshuffle_lz4_test
+    tests:
+    - name: create
+      rmdir: /data/seth_testing/quote/byteshuffle_lz4_test
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "BYTESHUFFLE,LZ4"
+      - "--offset_filters"
+      - "BYTESHUFFLE,LZ4"
+      - "--coordinate_filters"
+      - "BYTESHUFFLE,LZ4"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  byteshuffle_bzip2:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/byteshuffle_bzip2_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/byteshuffle_bzip2_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "BYTESHUFFLE,BZIP2"
+      - "--offset_filters"
+      - "BYTESHUFFLE,BZIP2"
+      - "--coordinate_filters"
+      - "BYTESHUFFLE,BZIP2"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  byteshuffle_gzip:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/byteshuffle_gzip_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/byteshuffle_gzip_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "BYTESHUFFLE,GZIP"
+      - "--offset_filters"
+      - "BYTESHUFFLE,GZIP"
+      - "--coordinate_filters"
+      - "BYTESHUFFLE,GZIP"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  byteshuffle_zstd:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/byteshuffle_zstd_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/byteshuffle_zstd_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "BYTESHUFFLE,ZSTD"
+      - "--offset_filters"
+      - "BYTESHUFFLE,ZSTD"
+      - "--coordinate_filters"
+      - "BYTESHUFFLE,ZSTD"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+#  byteshuffle_rle:
+#    # Folder used for tilevcf group, also removed before each suite iteration is run
+#    group_uri: /data/seth_testing/quote/byteshuffle_rle_test
+#    # Uri of actual array for checking sizes
+#    array_uri: /data/seth_testing/quote/byteshuffle_rle_test/array
+#    # Tests is an array containing each test to run for the suite
+#    tests:
+#    # Name of test
+#    - name: create
+#      # Arguments to pass to base command
+#      args:
+#      - "--create"
+#      - "-a"
+#      - "GT,DP,GQ,MIN_DP"
+#      - "--attribute_filters"
+#      - "BYTESHUFFLE,RLE"
+#      - "--offset_filters"
+#      - "BYTESHUFFLE,RLE"
+#      - "--coordinate_filters"
+#      - "BYTESHUFFLE,RLE"
+#    - name: register
+#      args:
+#      - "register"
+#    - name: store
+#      check_array_size: TRUE
+#      args:
+#      - "store"
+#      - "-t"
+#      - "16"
+#      - "-m"
+#      - "50"
+#      - "-c"
+#      - "25000000"
+#    - name: export
+#      args:
+#      - "export"
+#      - "-s"
+#      - "soDozTcS"
+#      - "-o"
+#      - "v"
+
+  # double_deltas
+  double_delta_lz4:
+    array_uri: /data/seth_testing/quote/double_delta_lz4_test/array
+    group_uri: /data/seth_testing/quote/double_delta_lz4_test
+    tests:
+    - name: create
+      rmdir: /data/seth_testing/quote/double_delta_lz4_test
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "LZ4"
+      - "--offset_filters"
+      - "DOUBLE_DELTA,LZ4"
+      - "--coordinate_filters"
+      - "DOUBLE_DELTA,LZ4"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  double_delta_bzip2:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/double_delta_bzip2_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/double_delta_bzip2_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "BZIP2"
+      - "--offset_filters"
+      - "DOUBLE_DELTA,BZIP2"
+      - "--coordinate_filters"
+      - "DOUBLE_DELTA,BZIP2"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  double_delta_gzip:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/double_delta_gzip_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/double_delta_gzip_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "GZIP"
+      - "--offset_filters"
+      - "DOUBLE_DELTA,GZIP"
+      - "--coordinate_filters"
+      - "DOUBLE_DELTA,GZIP"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  double_delta_zstd:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/double_delta_zstd_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/double_delta_zstd_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "ZSTD"
+      - "--offset_filters"
+      - "DOUBLE_DELTA,ZSTD"
+      - "--coordinate_filters"
+      - "DOUBLE_DELTA,ZSTD"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+#  double_delta_rle:
+#    # Folder used for tilevcf group, also removed before each suite iteration is run
+#    group_uri: /data/seth_testing/quote/double_delta_rle_test
+#    # Uri of actual array for checking sizes
+#    array_uri: /data/seth_testing/quote/double_delta_rle_test/array
+#    # Tests is an array containing each test to run for the suite
+#    tests:
+#    # Name of test
+#    - name: create
+#      # Arguments to pass to base command
+#      args:
+#      - "--create"
+#      - "-a"
+#      - "GT,DP,GQ,MIN_DP"
+#      - "--attribute_filters"
+#      - "RLE"
+#      - "--offset_filters"
+#      - "DOUBLE_DELTA,RLE"
+#      - "--coordinate_filters"
+#      - "DOUBLE_DELTA,RLE"
+#    - name: register
+#      args:
+#      - "register"
+#    - name: store
+#      check_array_size: TRUE
+#      args:
+#      - "store"
+#      - "-t"
+#      - "16"
+#      - "-m"
+#      - "50"
+#      - "-c"
+#      - "25000000"
+#    - name: export
+#      args:
+#      - "export"
+#      - "-s"
+#      - "soDozTcS"
+#      - "-o"
+#      - "v"
+
+  # positive_deltas
+  positive_delta_lz4:
+    array_uri: /data/seth_testing/quote/positive_delta_lz4_test/array
+    group_uri: /data/seth_testing/quote/positive_delta_lz4_test
+    tests:
+    - name: create
+      rmdir: /data/seth_testing/quote/positive_delta_lz4_test
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "LZ4"
+      - "--offset_filters"
+      - "POSITIVE_DELTA,LZ4"
+      - "--coordinate_filters"
+      - "POSITIVE_DELTA,LZ4"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  positive_delta_bzip2:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/positive_delta_bzip2_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/positive_delta_bzip2_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "BZIP2"
+      - "--offset_filters"
+      - "POSITIVE_DELTA,BZIP2"
+      - "--coordinate_filters"
+      - "POSITIVE_DELTA,BZIP2"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  positive_delta_gzip:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/positive_delta_gzip_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/positive_delta_gzip_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "GZIP"
+      - "--offset_filters"
+      - "POSITIVE_DELTA,GZIP"
+      - "--coordinate_filters"
+      - "POSITIVE_DELTA,GZIP"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+  positive_delta_zstd:
+    # Folder used for tilevcf group, also removed before each suite iteration is run
+    group_uri: /data/seth_testing/quote/positive_delta_zstd_test
+    # Uri of actual array for checking sizes
+    array_uri: /data/seth_testing/quote/positive_delta_zstd_test/array
+    # Tests is an array containing each test to run for the suite
+    tests:
+    # Name of test
+    - name: create
+      # Arguments to pass to base command
+      args:
+      - "--create"
+      - "--attribute_filters"
+      - "ZSTD"
+      - "--offset_filters"
+      - "POSITIVE_DELTA,ZSTD"
+      - "--coordinate_filters"
+      - "POSITIVE_DELTA,ZSTD"
+      - "--type"
+      - "quote"
+
+    - name: store
+      check_array_size: TRUE
+      args:
+      - "--type"
+      - "quote"
+    - name: export
+      args:
+      - "--type"
+      - "quote"
+      - "--read"
+
+#  positive_delta_rle:
+#    # Folder used for tilevcf group, also removed before each suite iteration is run
+#    group_uri: /data/seth_testing/quote/positive_delta_rle_test
+#    # Uri of actual array for checking sizes
+#    array_uri: /data/seth_testing/quote/positive_delta_rle_test/array
+#    # Tests is an array containing each test to run for the suite
+#    tests:
+#    # Name of test
+#    - name: create
+#      # Arguments to pass to base command
+#      args:
+#      - "--create"
+#      - "-a"
+#      - "GT,DP,GQ,MIN_DP"
+#      - "--attribute_filters"
+#      - "RLE"
+#      - "--offset_filters"
+#      - "POSITIVE_DELTA,RLE"
+#      - "--coordinate_filters"
+#      - "POSITIVE_DELTA,RLE"
+#    - name: register
+#      args:
+#      - "register"
+#    - name: store
+#      check_array_size: TRUE
+#      args:
+#      - "store"
+#      - "-t"
+#      - "16"
+#      - "-m"
+#      - "50"
+#      - "-c"
+#      - "25000000"
+#    - name: export
+#      args:
+#      - "export"
+#      - "-s"
+#      - "soDozTcS"
+#      - "-o"
+#      - "v"

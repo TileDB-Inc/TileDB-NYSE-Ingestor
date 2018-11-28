@@ -46,7 +46,8 @@ namespace nyse {
         /**
          * Create quote array
          */
-        void createArray();
+        void createArray(tiledb::FilterList coordinate_filter_list, tiledb::FilterList offset_filter_list,
+                         tiledb::FilterList attribute_filter_list);
 
         /**
          * Load quote data into array
@@ -56,6 +57,8 @@ namespace nyse {
          * @return status
          */
         int load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize, uint32_t threads) override;
+
+        uint64_t readSample(std::string outfile, std::string delimiter);
     };
 }
 

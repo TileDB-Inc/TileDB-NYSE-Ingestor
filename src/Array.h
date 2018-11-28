@@ -74,7 +74,7 @@ namespace nyse {
         ~Array() {
             query.reset(nullptr);
             array.reset(nullptr);
-            ctx.reset(nullptr);
+            ctx.reset();
         }
 
         /**
@@ -87,7 +87,8 @@ namespace nyse {
         virtual int load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize, uint32_t threads);
 
 
-        virtual void createArray() = 0;
+        virtual void createArray(tiledb::FilterList coordinate_filter_list, tiledb::FilterList offset_filter_list,
+                                         tiledb::FilterList attribute_filter_list) = 0;
 
         /**
          * Parse header is a function for parsing the header row of a file
@@ -127,9 +128,19 @@ namespace nyse {
          */
         std::unordered_map<std::string, std::shared_ptr<nyse::buffer>> parseFileToBuffer(std::string file_uri,
                                                                                          std::unordered_map<std::string, std::string> staticColumns,
+                                                                                         std::unordered_map<std::string, std::string> ignoreColumns,
                                                                                          std::set<std::string> dimensionFields,
                                                                                          char delimiter,
                                                                                          tiledb::ArraySchema arraySchema);
+
+        /**
+         * Get tiledb context shared ptr
+         * @return
+         */
+        const std::shared_ptr<tiledb::Context> &getCtx() const;
+
+        //void read(void *subarray);
+        virtual uint64_t readSample(std::string outfile, std::string delimiter) = 0;
 
     protected:
         /**
@@ -148,13 +159,18 @@ namespace nyse {
         std::string array_uri;
         std::unique_ptr<tiledb::Array> array;
         std::unique_ptr<tiledb::Query> query;
-        std::unique_ptr<tiledb::Context> ctx;
+        std::shared_ptr<tiledb::Context> ctx;
 
         // Static columns allows defining a constant value for a given column for all rows, i.e. date.
         std::unordered_map<std::string, std::unordered_map<std::string, std::string>> staticColumnsForFiles;
+        std::unordered_map<std::string, std::unordered_map<std::string, std::string>> ignoreColumnsForFiles;
         std::unordered_map<std::string, std::shared_ptr<buffer>> globalBuffers;
 
-        void concatBuffers(std::shared_ptr<void> shared_ptr, std::shared_ptr<void> sharedPtr, tiledb_datatype_t datatype);
+        void concatBuffers(std::shared_ptr<void> globalBuffer, std::shared_ptr<void> bufferToAppend, tiledb_datatype_t datatype);
+
+        void concatOffsets(std::shared_ptr<std::vector<uint64_t>> globalOffsets, std::shared_ptr<std::vector<uint64_t>> bufferOffsets, std::shared_ptr<void> values, tiledb_datatype_t datatype);
+
+        uint64_t buffer_size = 10*1024*1024;
     };
 }
 
