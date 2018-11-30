@@ -25,9 +25,6 @@ elseif (CMAKE_BUILD_TYPE MATCHES "Release")
     add_compile_options(-DNDEBUG -O3)
 endif()
 
-#add_compile_options("-DUSE_OS_TZDB=1")
-#add_compile_options("-DHAS_STRING_VIEW=0")
-
 ############################################################
 # Superbuild setup
 ############################################################
@@ -44,15 +41,15 @@ if (CMAKE_IDE)
 endif()
 
 if (SUPERBUILD)
-    project(NYSE_Ingestor-Superbuild)
-    message(STATUS "Starting TileDB-Genomics superbuild.")
+    project(nyse_ingestor-superbuild)
+    message(STATUS "Starting nyse-ingestor-superbuild.")
     include("cmake/Superbuild.cmake")
     return()
 endif()
 
 
-project(NYSE_Ingestor)
-message(STATUS "Starting NYSE_Ingestor regular build.")
+project(nyse_ingestor)
+message(STATUS "Starting nyse_ingestor regular build.")
 
 # Paths to locate the installed external projects.
 set(EP_SOURCE_DIR "${EP_BASE}/src")
@@ -62,17 +59,17 @@ set(EP_INSTALL_PREFIX "${EP_BASE}/install")
 # Regular build
 ############################################################
 
-add_executable(NYSE_Ingestor src/main.cc src/Master.cc src/Quote.cc src/Trade.cc src/Array.cc)
+add_executable(nyse_ingestor src/main.cc src/Master.cc src/Quote.cc src/Trade.cc src/Array.cc)
 
-target_include_directories(NYSE_Ingestor PUBLIC src)
+target_include_directories(nyse_ingestor PUBLIC src)
 
 find_package(TileDB_EP REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Date_EP REQUIRED)
-target_link_libraries(NYSE_Ingestor dl ${CMAKE_THREAD_LIBS_INIT} Date::tz)
+target_link_libraries(nyse_ingestor dl ${CMAKE_THREAD_LIBS_INIT} Date::tz)
 
 if (TARGET TileDB::tiledb_static)
-    target_link_libraries(NYSE_Ingestor TileDB::tiledb_static)
+    target_link_libraries(nyse_ingestor TileDB::tiledb_static)
 else()
-    target_link_libraries(NYSE_Ingestor TileDB::tiledb_shared)
+    target_link_libraries(nyse_ingestor TileDB::tiledb_shared)
 endif()

@@ -28,7 +28,7 @@ is not found they will be downloaded and compiled from source.
 mkdir build
 cd build
 cmake ..
-make
+make -j$(nproc)
 ```
 
 ## Running Ingestor
@@ -40,37 +40,37 @@ The sample data included is just the first 100 lines of each file.
 ### Create Master table
 
 ```
-./NYSE_Ingestor/NYSE_Ingestor --array "master_array" --type Master --create
+./nyse_ingestor/nyse_ingestor --array "master_array" --type Master --create
 ```
 
 ### Create Quote table
 
 ```
-./NYSE_Ingestor/NYSE_Ingestor --array "quote_array" --type Quote --create
+./nyse_ingestor/nyse_ingestor --array "quote_array" --type Quote --create
 ```
 
 ### Create Trade table
 
 ```
-./NYSE_Ingestor/NYSE_Ingestor --array "trade_array" --type Trade --create
+./nyse_ingestor/nyse_ingestor --array "trade_array" --type Trade --create
 ```
 
 ### Load Sample Master File
 
 ```
-./NYSE_Ingestor/NYSE_Ingestor --array "master_array"" -f "../sample_data/small_EQY_US_ALL_REF_MASTER_20180306" --type Master 
+./nyse_ingestor/nyse_ingestor --array "master_array" -f "../sample_data/small_EQY_US_ALL_REF_MASTER_20180306" --type Master
 ```
 
 ### Load Sample Quote File
 
 ```
-./NYSE_Ingestor/NYSE_Ingestor --array "quote_array" -f "../sample_data/small_SPLITS_US_ALL_BBO_Z_20180730" --type Quote --master_file "../sample_data/small_EQY_US_ALL_REF_MASTER_20180306"
+./nyse_ingestor/nyse_ingestor --array "quote_array" -f "../sample_data/small_SPLITS_US_ALL_BBO_Z_20180730" --type Quote --master_file "../sample_data/small_EQY_US_ALL_REF_MASTER_20180306"
 ```
 
 ### Load Sample Trade File
 
 ```
-./NYSE_Ingestor/NYSE_Ingestor --array "trade_array" -f "../sample_data/small_EQY_US_ALL_TRADE_20180730" --type Trade --master_file "../sample_data/small_EQY_US_ALL_REF_MASTER_20180306"
+./nyse_ingestor/nyse_ingestor --array "trade_array" -f "../sample_data/small_EQY_US_ALL_TRADE_20180730" --type Trade --master_file "../sample_data/small_EQY_US_ALL_REF_MASTER_20180306"
 ```
 
 ## Altering TileDB Array Filters
@@ -118,6 +118,6 @@ To use GZIP filter for attributes, and double delta + gzip for coordinates and
 offsets, use the following arguments:
 
 ```
-./NYSE_Ingestor/NYSE_Ingestor --array "quote_array_gzip" --type Quote --create --coordinate_filters DOUBLE_DELTA,GZIP --offset_filters DOUBLE_DELTA,GZIP --attribute_filters GZIP
+./nyse_ingestor/nyse_ingestor --array "quote_array_gzip" --type Quote --create --coordinate_filters DOUBLE_DELTA,GZIP --offset_filters DOUBLE_DELTA,GZIP --attribute_filters GZIP
 ```
 
