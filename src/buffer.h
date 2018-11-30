@@ -34,20 +34,21 @@
 #ifndef NYSE_INGESTOR_BUFFER_H
 #define NYSE_INGESTOR_BUFFER_H
 
-#include <tiledb/tiledb.h>
 #include <memory>
+#include <tiledb/tiledb.h>
 #include <vector>
 
 namespace nyse {
 
-    /**
-     * Buffer struct is a wrapper for holding offset and values buffer shared pointers for a attribute/coordinates
-     */
-    struct buffer {
-        std::shared_ptr<std::vector<uint64_t>> offsets;
-        std::shared_ptr<void> values;
-        tiledb_datatype_t datatype;
-    };
-}
+/**
+ * Buffer struct is a wrapper for holding offset and values buffer shared
+ * pointers for a attribute/coordinates
+ */
+struct buffer {
+  std::shared_ptr<std::vector<uint64_t>> offsets;
+  std::shared_ptr<void> values;
+  tiledb_datatype_t datatype;
+};
+} // namespace nyse
 
-#endif //NYSE_INGESTOR_BUFFER_H
+#endif // NYSE_INGESTOR_BUFFER_H

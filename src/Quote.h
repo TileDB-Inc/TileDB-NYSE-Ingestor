@@ -34,36 +34,36 @@
 #ifndef NYSE_INGESTOR_QUOTE_H
 #define NYSE_INGESTOR_QUOTE_H
 
-
-#include <string>
 #include "Array.h"
 #include "Master.h"
+#include <string>
 
 namespace nyse {
-    class Quote : public Array {
-    public:
-        Quote(std::string array_name, std::string master_file, char delimiter);
+class Quote : public Array {
+public:
+  Quote(std::string array_name, std::string master_file, char delimiter);
 
-        /**
-         * Create quote array
-         */
-        void createArray(tiledb::FilterList coordinate_filter_list, tiledb::FilterList offset_filter_list,
-                         tiledb::FilterList attribute_filter_list);
+  /**
+   * Create quote array
+   */
+  void createArray(tiledb::FilterList coordinate_filter_list,
+                   tiledb::FilterList offset_filter_list,
+                   tiledb::FilterList attribute_filter_list);
 
-        /**
-         * Load quote data into array
-         * @param file_uris uri where file is located
-         * @param delimiter delimiter of file
-         * @param batchSize how many rows to load at once
-         * @return status
-         */
-        int load(const std::vector<std::string> file_uris, char delimiter, uint64_t batchSize, uint32_t threads) override;
+  /**
+   * Load quote data into array
+   * @param file_uris uri where file is located
+   * @param delimiter delimiter of file
+   * @param batchSize how many rows to load at once
+   * @return status
+   */
+  int load(const std::vector<std::string> file_uris, char delimiter,
+           uint64_t batchSize, uint32_t threads) override;
 
-        uint64_t readSample(std::string outfile, std::string delimiter);
+  uint64_t readSample(std::string outfile, std::string delimiter);
 
-        std::string master_file;
-    };
-}
+  std::string master_file;
+};
+} // namespace nyse
 
-
-#endif //NYSE_INGESTOR_QUOTE_H
+#endif // NYSE_INGESTOR_QUOTE_H
