@@ -81,12 +81,12 @@ endif()
 # Set up the regular build (i.e. non-superbuild).
 ############################################################
 
-ExternalProject_Add(NYSE_Ingestor
+ExternalProject_Add(nyse_ingestor
   SOURCE_DIR ${PROJECT_SOURCE_DIR}
   CMAKE_ARGS
     -DSUPERBUILD=OFF
     ${INHERITED_CMAKE_ARGS}
   INSTALL_COMMAND ""
-  BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/NYSE_Ingestor
+  BINARY_DIR ${CMAKE_CURRENT_BINARY_DIR}/nyse_ingestor
   DEPENDS ${EXTERNAL_PROJECTS}
 )
