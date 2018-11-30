@@ -1,12 +1,12 @@
 # NYSE Ingestor
 
-This project is a ingestor/loader for loading New York Stock Exchange (NYSE) Quote, Trade and Master data into tiledb.
+This project is a ingestor/loader for loading New York Stock Exchange (NYSE) Quote, Trade and Master data into [TileDB](https://github.com/TileDB-Inc/TileDB).
 
-This project is written in c++.
+This project is written in C++.
 
-It requires all delimited files to be local to the file system. 
+It requires all delimited files to be on a local filesystem. 
 
-The Master file is used to to create an `symbol_id` numerical value to map the
+The master file is used to to create an `symbol_id` numerical value to map the
 stock symbol to the master file. This is equivalent of an auto increment id
 in a traditional RDBMS.
 
@@ -17,12 +17,12 @@ NYSE sample data is located on the nyxdata FTP Server:
 
 `ftp://ftp.nyxdata.com/Historical%20Data%20Samples/Daily%20TAQ%20Sample%202018/`
 
-Specification file for delimited formats [Daily_TAQ_Client_Spec_v2.2a.pdf](http://www.nyxdata.com/doc/247075) 
+Specification file for delimited formats: [Daily_TAQ_Client_Spec_v2.2a.pdf](http://www.nyxdata.com/doc/247075) 
 
 ## Building
 
 The NYSE Ingestor is configured for a superbuild. If TileDB or the date library
-is not found they will be downloaded and compiled from source.
+is not found they will be automatically downloaded and compiled from source.
 
 ```
 mkdir build
@@ -86,7 +86,7 @@ filters:
 | Coordinates | Double Delta, ZSTD Compressor |
 | Offsets | Double Delta, ZSTD Compressor |
 
-Each one of these filter pipelines can be adjusted by passing a csv list
+Each one of these filter pipelines can be adjusted by passing a CSV list
 of filter names via the relevant command line flag during the create array
 command.
 
@@ -114,7 +114,7 @@ The available filters that can be passed are:
 
 ### Example Filter Usage
 
-To use GZIP filter for attributes, and double delta + gzip for coordinates and
+To use a gzip filter for attributes, and double delta + gzip for coordinates and
 offsets, use the following arguments:
 
 ```
