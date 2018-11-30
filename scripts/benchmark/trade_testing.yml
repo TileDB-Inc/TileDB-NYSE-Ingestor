@@ -8,11 +8,11 @@ ingestion_files:
 # List of suites to run for benchmarking
 suites:
   lz4:
-    array_uri: /data/seth_testing/trade/lz4_test/array
-    group_uri: /data/seth_testing/trade/lz4_test
+    array_uri: /data/testing/trade/lz4_test/array
+    group_uri: /data/testing/trade/lz4_test
     tests:
     - name: create
-      rmdir: /data/seth_testing/trade/lz4_test
+      rmdir: /data/testing/trade/lz4_test
       args:
         - "--create"
         - "--attribute_filters"

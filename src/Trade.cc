@@ -74,14 +74,6 @@ void nyse::Trade::createArray(tiledb::FilterList coordinate_filter_list,
       *ctx, "datetime", {{0, UINT64_MAX - 60 * 60 * 1000000000UL}},
       60 * 60UL * 1000000000));
 
-  // Store up to 2 years of data in array
-  // domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "date", {{1,
-  // 20381231}}, 31));
-
-  // Nanoseconds since midnight
-  // domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "Time",
-  // {{0UL, UINT64_MAX - 1}}, 1000000000UL * 60)); // HHMMSSXXXXXXXXX
-
   // Sequence_Number
   domain.add_dimension(tiledb::Dimension::create<uint64_t>(
       *ctx, "Sequence_Number", {{0, UINT64_MAX - 1}}, UINT64_MAX));
@@ -104,11 +96,8 @@ void nyse::Trade::createArray(tiledb::FilterList coordinate_filter_list,
   // Set compression filter to ZSTD if not already set
   if (attribute_filter_list.nfilters() == 0) {
     tiledb::Filter compressor(*ctx, TILEDB_FILTER_ZSTD);
-    // f.set_option(TILEDB_COMPRESSION_LEVEL, 5);
     attribute_filter_list.add_filter(compressor);
   }
-
-  // Add a single attribute "a" so each (i,j) cell can store an integer.
 
   tiledb::Attribute Exchange = tiledb::Attribute::create<char>(*ctx, "Exchange")
                                    .set_filter_list(attribute_filter_list);
@@ -155,11 +144,6 @@ void nyse::Trade::createArray(tiledb::FilterList coordinate_filter_list,
       Trade_Stop_Stock_Indicator, Trade_Correction_Indicator, Trade_Id,
       Source_of_Trade, Trade_Reporting_Facility, Participant_Timestamp,
       Trade_Reporting_Facility_TRF_Timestamp, Trade_Through_Exempt_Indicator);
-
-  // Time|Exchange|Symbol|Sale Condition|Trade Volume|Trade Price|Trade Stop
-  // Stock Indicator|Trade Correction Indicator|Sequence Number|Trade Id| Source
-  // of Trade|Trade Reporting Facility|Participant Timestamp|Trade Reporting
-  // Facility TRF Timestamp|Trade Through Exempt Indicator
 
   // Create the (empty) array on disk.
   tiledb::Array::create(array_uri, schema);

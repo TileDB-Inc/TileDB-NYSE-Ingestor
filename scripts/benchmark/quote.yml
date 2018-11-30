@@ -8,11 +8,11 @@ ingestion_files:
 # List of suites to run for benchmarking
 suites:
   lz4:
-    array_uri: /data/seth_testing/quote/lz4_test/array
-    group_uri: /data/seth_testing/quote/lz4_test
+    array_uri: /data/testing/quote/lz4_test/array
+    group_uri: /data/testing/quote/lz4_test
     tests:
     - name: create
-      rmdir: /data/seth_testing/quote/lz4_test
+      rmdir: /data/testing/quote/lz4_test
       args:
         - "--create"
         - "--attribute_filters"
@@ -35,9 +35,9 @@ suites:
         - "--read"
   bzip2:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/bzip2_test
+    group_uri: /data/testing/quote/bzip2_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/bzip2_test/array
+    array_uri: /data/testing/quote/bzip2_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -65,9 +65,9 @@ suites:
       - "--read"
   gzip:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/gzip_test
+    group_uri: /data/testing/quote/gzip_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/gzip_test/array
+    array_uri: /data/testing/quote/gzip_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -95,9 +95,9 @@ suites:
       - "--read"
   zstd:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/zstd_test
+    group_uri: /data/testing/quote/zstd_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/zstd_test/array
+    array_uri: /data/testing/quote/zstd_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -126,9 +126,9 @@ suites:
       - "--read"
 #  rle:
 #    # Folder used for tilevcf group, also removed before each suite iteration is run
-#    group_uri: /data/seth_testing/quote/rle_test
+#    group_uri: /data/testing/quote/rle_test
 #    # Uri of actual array for checking sizes
-#    array_uri: /data/seth_testing/quote/rle_test/array
+#    array_uri: /data/testing/quote/rle_test/array
 #    # Tests is an array containing each test to run for the suite
 #    tests:
 #    # Name of test
@@ -167,11 +167,11 @@ suites:
 
   # bit shuffles
   bitshuffle_lz4:
-    array_uri: /data/seth_testing/quote/bitshuffle_lz4_test/array
-    group_uri: /data/seth_testing/quote/bitshuffle_lz4_test
+    array_uri: /data/testing/quote/bitshuffle_lz4_test/array
+    group_uri: /data/testing/quote/bitshuffle_lz4_test
     tests:
     - name: create
-      rmdir: /data/seth_testing/quote/bitshuffle_lz4_test
+      rmdir: /data/testing/quote/bitshuffle_lz4_test
       args:
       - "--create"
       - "--attribute_filters"
@@ -195,9 +195,9 @@ suites:
       - "--read"
   bitshuffle_bzip2:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/bitshuffle_bzip2_test
+    group_uri: /data/testing/quote/bitshuffle_bzip2_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/bitshuffle_bzip2_test/array
+    array_uri: /data/testing/quote/bitshuffle_bzip2_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -226,9 +226,9 @@ suites:
       - "--read"
   bitshuffle_gzip:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/bitshuffle_gzip_test
+    group_uri: /data/testing/quote/bitshuffle_gzip_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/bitshuffle_gzip_test/array
+    array_uri: /data/testing/quote/bitshuffle_gzip_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -257,9 +257,9 @@ suites:
       - "--read"
   bitshuffle_zstd:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/bitshuffle_zstd_test
+    group_uri: /data/testing/quote/bitshuffle_zstd_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/bitshuffle_zstd_test/array
+    array_uri: /data/testing/quote/bitshuffle_zstd_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -288,9 +288,9 @@ suites:
       - "--read"
 #  bitshuffle_rle:
 #    # Folder used for tilevcf group, also removed before each suite iteration is run
-#    group_uri: /data/seth_testing/quote/bitshuffle_rle_test
+#    group_uri: /data/testing/quote/bitshuffle_rle_test
 #    # Uri of actual array for checking sizes
-#    array_uri: /data/seth_testing/quote/bitshuffle_rle_test/array
+#    array_uri: /data/testing/quote/bitshuffle_rle_test/array
 #    # Tests is an array containing each test to run for the suite
 #    tests:
 #    # Name of test
@@ -329,11 +329,11 @@ suites:
 
   # byteshuffles
   byteshuffle_lz4:
-    array_uri: /data/seth_testing/quote/byteshuffle_lz4_test/array
-    group_uri: /data/seth_testing/quote/byteshuffle_lz4_test
+    array_uri: /data/testing/quote/byteshuffle_lz4_test/array
+    group_uri: /data/testing/quote/byteshuffle_lz4_test
     tests:
     - name: create
-      rmdir: /data/seth_testing/quote/byteshuffle_lz4_test
+      rmdir: /data/testing/quote/byteshuffle_lz4_test
       args:
       - "--create"
       - "--attribute_filters"
@@ -357,9 +357,9 @@ suites:
       - "--read"
   byteshuffle_bzip2:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/byteshuffle_bzip2_test
+    group_uri: /data/testing/quote/byteshuffle_bzip2_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/byteshuffle_bzip2_test/array
+    array_uri: /data/testing/quote/byteshuffle_bzip2_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -388,9 +388,9 @@ suites:
       - "--read"
   byteshuffle_gzip:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/byteshuffle_gzip_test
+    group_uri: /data/testing/quote/byteshuffle_gzip_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/byteshuffle_gzip_test/array
+    array_uri: /data/testing/quote/byteshuffle_gzip_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -419,9 +419,9 @@ suites:
       - "--read"
   byteshuffle_zstd:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/byteshuffle_zstd_test
+    group_uri: /data/testing/quote/byteshuffle_zstd_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/byteshuffle_zstd_test/array
+    array_uri: /data/testing/quote/byteshuffle_zstd_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -450,9 +450,9 @@ suites:
       - "--read"
 #  byteshuffle_rle:
 #    # Folder used for tilevcf group, also removed before each suite iteration is run
-#    group_uri: /data/seth_testing/quote/byteshuffle_rle_test
+#    group_uri: /data/testing/quote/byteshuffle_rle_test
 #    # Uri of actual array for checking sizes
-#    array_uri: /data/seth_testing/quote/byteshuffle_rle_test/array
+#    array_uri: /data/testing/quote/byteshuffle_rle_test/array
 #    # Tests is an array containing each test to run for the suite
 #    tests:
 #    # Name of test
@@ -491,11 +491,11 @@ suites:
 
   # double_deltas
   double_delta_lz4:
-    array_uri: /data/seth_testing/quote/double_delta_lz4_test/array
-    group_uri: /data/seth_testing/quote/double_delta_lz4_test
+    array_uri: /data/testing/quote/double_delta_lz4_test/array
+    group_uri: /data/testing/quote/double_delta_lz4_test
     tests:
     - name: create
-      rmdir: /data/seth_testing/quote/double_delta_lz4_test
+      rmdir: /data/testing/quote/double_delta_lz4_test
       args:
       - "--create"
       - "--attribute_filters"
@@ -519,9 +519,9 @@ suites:
       - "--read"
   double_delta_bzip2:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/double_delta_bzip2_test
+    group_uri: /data/testing/quote/double_delta_bzip2_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/double_delta_bzip2_test/array
+    array_uri: /data/testing/quote/double_delta_bzip2_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -550,9 +550,9 @@ suites:
       - "--read"
   double_delta_gzip:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/double_delta_gzip_test
+    group_uri: /data/testing/quote/double_delta_gzip_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/double_delta_gzip_test/array
+    array_uri: /data/testing/quote/double_delta_gzip_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -581,9 +581,9 @@ suites:
       - "--read"
   double_delta_zstd:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/double_delta_zstd_test
+    group_uri: /data/testing/quote/double_delta_zstd_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/double_delta_zstd_test/array
+    array_uri: /data/testing/quote/double_delta_zstd_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -612,9 +612,9 @@ suites:
       - "--read"
 #  double_delta_rle:
 #    # Folder used for tilevcf group, also removed before each suite iteration is run
-#    group_uri: /data/seth_testing/quote/double_delta_rle_test
+#    group_uri: /data/testing/quote/double_delta_rle_test
 #    # Uri of actual array for checking sizes
-#    array_uri: /data/seth_testing/quote/double_delta_rle_test/array
+#    array_uri: /data/testing/quote/double_delta_rle_test/array
 #    # Tests is an array containing each test to run for the suite
 #    tests:
 #    # Name of test
@@ -653,11 +653,11 @@ suites:
 
   # positive_deltas
   positive_delta_lz4:
-    array_uri: /data/seth_testing/quote/positive_delta_lz4_test/array
-    group_uri: /data/seth_testing/quote/positive_delta_lz4_test
+    array_uri: /data/testing/quote/positive_delta_lz4_test/array
+    group_uri: /data/testing/quote/positive_delta_lz4_test
     tests:
     - name: create
-      rmdir: /data/seth_testing/quote/positive_delta_lz4_test
+      rmdir: /data/testing/quote/positive_delta_lz4_test
       args:
       - "--create"
       - "--attribute_filters"
@@ -681,9 +681,9 @@ suites:
       - "--read"
   positive_delta_bzip2:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/positive_delta_bzip2_test
+    group_uri: /data/testing/quote/positive_delta_bzip2_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/positive_delta_bzip2_test/array
+    array_uri: /data/testing/quote/positive_delta_bzip2_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -712,9 +712,9 @@ suites:
       - "--read"
   positive_delta_gzip:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/positive_delta_gzip_test
+    group_uri: /data/testing/quote/positive_delta_gzip_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/positive_delta_gzip_test/array
+    array_uri: /data/testing/quote/positive_delta_gzip_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -743,9 +743,9 @@ suites:
       - "--read"
   positive_delta_zstd:
     # Folder used for tilevcf group, also removed before each suite iteration is run
-    group_uri: /data/seth_testing/quote/positive_delta_zstd_test
+    group_uri: /data/testing/quote/positive_delta_zstd_test
     # Uri of actual array for checking sizes
-    array_uri: /data/seth_testing/quote/positive_delta_zstd_test/array
+    array_uri: /data/testing/quote/positive_delta_zstd_test/array
     # Tests is an array containing each test to run for the suite
     tests:
     # Name of test
@@ -775,9 +775,9 @@ suites:
 
 #  positive_delta_rle:
 #    # Folder used for tilevcf group, also removed before each suite iteration is run
-#    group_uri: /data/seth_testing/quote/positive_delta_rle_test
+#    group_uri: /data/testing/quote/positive_delta_rle_test
 #    # Uri of actual array for checking sizes
-#    array_uri: /data/seth_testing/quote/positive_delta_rle_test/array
+#    array_uri: /data/testing/quote/positive_delta_rle_test/array
 #    # Tests is an array containing each test to run for the suite
 #    tests:
 #    # Name of test
