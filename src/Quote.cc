@@ -65,19 +65,11 @@ void nyse::Quote::createArray(tiledb::FilterList coordinate_filter_list,
       *ctx, "datetime", {{0, UINT64_MAX - 60UL * 60 * 1000000000}},
       60UL * 60 * 1000000000));
 
-  // Store up to 2 years of data in array
-  // domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "date", {{1,
-  // 20381231}}, 31));
-
-  // Nanoseconds since midnight
-  // domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "Time",
-  // {{0UL, 235959000000000UL}}, 1000000000UL * 60)); // HHMMSSXXXXXXXXX
-
   // Sequence_Number
   domain.add_dimension(tiledb::Dimension::create<uint64_t>(
       *ctx, "Sequence_Number", {{0, UINT64_MAX - 1}}, UINT64_MAX));
 
-  // The array will be dense.
+  // The array will be sparse.
   tiledb::ArraySchema schema(*ctx, TILEDB_SPARSE);
   schema.set_domain(domain).set_order({{TILEDB_ROW_MAJOR, TILEDB_ROW_MAJOR}});
 
@@ -95,11 +87,8 @@ void nyse::Quote::createArray(tiledb::FilterList coordinate_filter_list,
   // Set compression filter to ZSTD if not already set
   if (attribute_filter_list.nfilters() == 0) {
     tiledb::Filter compressor(*ctx, TILEDB_FILTER_ZSTD);
-    // f.set_option(TILEDB_COMPRESSION_LEVEL, 5);
     attribute_filter_list.add_filter(compressor);
   }
-
-  // Add a single attribute "a" so each (i,j) cell can store an integer.
 
   tiledb::Attribute Exchange = tiledb::Attribute::create<char>(*ctx, "Exchange")
                                    .set_filter_list(attribute_filter_list);
@@ -175,10 +164,6 @@ void nyse::Quote::createArray(tiledb::FilterList coordinate_filter_list,
       LULD_BBO_Indicator, SIP_Generated_Message_Identifier,
       National_BBO_LULD_Indicator, Participant_Timestamp, FINRA_ADF_Timestamp,
       FINRA_ADF_Market_Participant_Quote_Indicator, Security_Status_Indicator);
-
-  // Time|Exchange|Symbol|Bid_Price|Bid_Size|Offer_Price|Offer_Size|Quote_Condition|Sequence_Number|National_BBO_Ind|FINRA_BBO_Indicator|FINRA_ADF_MPID_Indicator|
-  // National_BBO_LULD_Indicator|Source_Of_Quote|Retail_Interest_Indicator|Short_Sale_Restriction_Indicator|LULD_BBO_Indicator|SIP_Generated_Message_Identifier|
-  // National_BBO_LULD_Indicator|Participant_Timestamp|FINRA_ADF_Timestamp|FINRA_ADF_Market_Participant_Quote_Indicator|Security_Status_Indicator
 
   // Create the (empty) array on disk.
   tiledb::Array::create(array_uri, schema);

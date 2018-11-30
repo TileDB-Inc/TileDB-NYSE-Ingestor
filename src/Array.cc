@@ -302,8 +302,6 @@ nyse::Array::parseFileToBuffer(
 
 int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter,
                       uint64_t batchSize, uint32_t threads) {
-  // tiledb::VFS vfs(ctx);
-  // tiledb::VFS::filebuf buff(vfs);
   unsigned long totalRows = 0;
 
   ThreadPool pool(threads);
@@ -324,11 +322,8 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter,
     dimensionFields.emplace(dimension.name());
   }
 
-  // buff.open(file_uri, std::ios::in);
-
   auto startTime = std::chrono::steady_clock::now();
 
-  // std::istream is(&buff);
   for (const std::string &file_uri : file_uris) {
     if (staticColumnsForFiles.find(file_uri) == staticColumnsForFiles.end()) {
       std::cerr << "File " << file_uri
@@ -349,8 +344,6 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter,
           std::string,
           std::pair<std::string,
                     std::unordered_map<std::string, std::string> *>>>();
-    // auto result = pool.enqueue(loadJob(file_uri, staticColumns,
-    // dimensionFields));
     results.push_back(pool.enqueue(staticLoadJob, this, file_uri, staticColumns,
                                    mapColumns, &dimensionFields, delimiter,
                                    arraySchema));
@@ -398,7 +391,6 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter,
          beautify_duration(duration).c_str(),
          (float(totalRows)) / duration.count());
 
-  // buff.close();
   return 0;
 }
 
