@@ -31,3 +31,16 @@ script:
   - ./build/nyse_ingestor/nyse_ingestor --array "./test_arrays/master" --type Master --files "./sample_data/small_EQY_US_ALL_REF_MASTER_20180306"
   - ./build/nyse_ingestor/nyse_ingestor --array "./test_arrays/quote" --type Quote --files "./sample_data/small_SPLITS_US_ALL_BBO_Z_20180730" --master_file "./sample_data/small_EQY_US_ALL_REF_MASTER_20180306"
   - ./build/nyse_ingestor/nyse_ingestor --array "./test_arrays/trade" --type Trade --files "./sample_data/small_EQY_US_ALL_TRADE_20180730" --master_file "./sample_data/small_EQY_US_ALL_REF_MASTER_20180306"
+
+before_deploy:
+  - cp ./build/nyse_ingestor/nyse_ingestor ./build/nyse_ingestor/nyse_ingestor.linux-x86_64
+
+deploy:
+  provider: releases
+  skip_cleanup: true
+  api_key:
+    secure: JAdXXEkZOr7+Hw0yaJoj6lvDhZimhk0cFqiIPP0Sq7vgrrClAFeIxp5A9NZp8sMvrKDUoFA91JqgU4dRIDc8Rn7QUU/xIImhcxBRxtXmC7F91qtvBAs3HmpZ5tCa02P91RdZFeM37fpCirT9sTgDhJ63gUQAuePHamt5ONnk6apUq6aFXrheP3FDzAIHhnvm0QEJjHncUnlsWT0BqOZEWYVNmu5gW3ux5xMrKgqxpNbpqqM/KMJgmFwrT+lc4qrGS/CmZdwFna4DFxamAuncNLn+kL7TRKZAJbjdUeW93HsS8ISGZKVGdq//GfPNl3jQUkDR2yOCDLBduwXkjZBRwtygdNjD+sQhINRBAaDR/CsG+vtj6+Fp7kh+2+FMvBA/OPCTkKtdr1Fb31Swqb+ev6FchUmNrAJb5BiKJKQW2b8d7kWsoK5NFQK93KutQE3O05ohPSEVDeOWenkzlxdxd27BvcuE6KaGNRG0E8mEaxUyAc0OXwG13t16Owas/nKT5VL6rHfqwj4bSqdQxRniIsFMk+VddFU3rQB3AfRhhLkxk05nybopl4W1Ln2VSK9Fa9FIH+awX6u79IB5f7MeIUjhj4Hke6rsERxCeSfafT0iJaXsVPsZe8g5J+8k8N7QFGURJMVhdv0NQRu2nCpiBJYcr97yMTAyMExcgA3A9kI=
+  file: "./build/nyse_ingestor/nyse_ingestor.linux-x86_64"
+  on:
+    repo: TileDB-Inc/nyse_ingestor
+    tags: true
