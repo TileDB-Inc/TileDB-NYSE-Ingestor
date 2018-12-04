@@ -1,28 +1,49 @@
-# NYSE Ingestor
+# TileDB NYSE Data Ingestor
 
-This project is a ingestor/loader for loading New York Stock Exchange (NYSE) Quote, Trade and Master data into [TileDB](https://github.com/TileDB-Inc/TileDB).
+This project is an ingestor/loader written in C++ for loading New York Stock Exchange (NYSE) Quote, Trade and Master data into [TileDB](https://github.com/TileDB-Inc/TileDB).
 
-This project is written in C++.
+## Getting the NYSE Sample Data
 
-It requires all delimited files to be on a local filesystem. 
-
-The master file is used to to create an `symbol_id` numerical value to map the
-stock symbol to the master file. This is equivalent of an auto increment id
-in a traditional RDBMS.
-
-
-## Getting NYSE Sample Data
-
-NYSE sample data is located on the nyxdata FTP Server:
+The NYSE sample data is located on the `nyxdata` FTP Server:
 
 `ftp://ftp.nyxdata.com/Historical%20Data%20Samples/Daily%20TAQ%20Sample%202018/`
 
-Specification file for delimited formats: [Daily_TAQ_Client_Spec_v2.2a.pdf](http://www.nyxdata.com/doc/247075) 
+Here is the specification file for delimited formats: [Daily_TAQ_Client_Spec_v2.2a.pdf](http://www.nyxdata.com/doc/247075) 
+
+### Master Files
+
+File name format: `EQY_US_ALL_REF_MASTER_<date>`
+
+Master files contain dimensional data, i.e., metedata about every stock that was
+listed on the NYSE exchange for a given day.
+
+The master file will be loaded into a TileDB array. It is also required for
+loading [Quote Files](#quote-files) or [Trade Files](#trade-files). The master file is
+used to to create a `symbol_id` numerical value mapped to each stock symbol. 
+This is equivalent to an auto increment id in a traditional RDBMS.
+
+### Quote Files
+
+The quote files are split into 26 alphabetic files based on the stock symbol.
+
+File name format: `SPLITS_US_ALL_BBO_<letter>_<date>`
+
+Each quote identifies the time, exchange, security, bid/ask volumes, bid/ask
+prices, NBBO indicator, and more. See the 
+[specification file](http://www.nyxdata.com/doc/247075) for the full list.
+
+### Trade Files
+
+File name format: `EQY_US_ALL_TRADE_<date>`
+
+Each trade identifies the time, exchange, security, volume, price, sale
+condition, and more. See the 
+[specification file](http://www.nyxdata.com/doc/247075) for the full list.
 
 ## Building
 
 The NYSE Ingestor is configured for a superbuild. If TileDB or the date library
-is not found they will be automatically downloaded and compiled from source.
+is not found, they will be automatically downloaded and compiled from source.
 
 ```
 mkdir build
@@ -31,49 +52,52 @@ cmake ..
 make -j$(nproc)
 ```
 
-## Running Ingestor
+## Usage
 
-Below are example commands for creating the arrays and loading sample data included in this repository.
-The sample data included is just the first 100 lines of each file.
+### Load a master file
 
-
-### Create Master table
+First create a master TileDB array to store the master data.
 
 ```
 ./nyse_ingestor/nyse_ingestor --array "master_array" --type Master --create
-```
-
-### Create Quote table
 
 ```
-./nyse_ingestor/nyse_ingestor --array "quote_array" --type Quote --create
-```
 
-### Create Trade table
-
-```
-./nyse_ingestor/nyse_ingestor --array "trade_array" --type Trade --create
-```
-
-### Load Sample Master File
+Then load a master file into the array as follows.
 
 ```
 ./nyse_ingestor/nyse_ingestor --array "master_array" -f "../sample_data/small_EQY_US_ALL_REF_MASTER_20180306" --type Master
 ```
 
-### Load Sample Quote File
+### Load a quote file 
+
+First create a quote TileDB array to store the quote data.
+
+```
+./nyse_ingestor/nyse_ingestor --array "quote_array" --type Quote --create
+```
+
+Then load a quote file into the array as follows.
 
 ```
 ./nyse_ingestor/nyse_ingestor --array "quote_array" -f "../sample_data/small_SPLITS_US_ALL_BBO_Z_20180730" --type Quote --master_file "../sample_data/small_EQY_US_ALL_REF_MASTER_20180306"
 ```
 
-### Load Sample Trade File
+### Load a trade file
+
+First create a trade TileDB array to store the trade data.
+
+```
+./nyse_ingestor/nyse_ingestor --array "trade_array" --type Trade --create
+```
+
+Then load a trade file into the array as follows.
 
 ```
 ./nyse_ingestor/nyse_ingestor --array "trade_array" -f "../sample_data/small_EQY_US_ALL_TRADE_20180730" --type Trade --master_file "../sample_data/small_EQY_US_ALL_REF_MASTER_20180306"
 ```
 
-## Altering TileDB Array Filters
+## Setting TileDB Filters
 
 [Filters](https://docs.tiledb.io/en/stable/tutorials/filters.html) are applied
 to Attributes, Coordinates and Offsets to provide compression and other
@@ -112,9 +136,9 @@ The available filters that can be passed are:
 | TILEDB_FILTER_BYTESHUFFLE | BYTESHUFFLE |
 | TILEDB_FILTER_POSITIVE_DELTA | POSITIVE_DELTA |
 
-### Example Filter Usage
+### Usage
 
-To use a gzip filter for attributes, and double delta + gzip for coordinates and
+As an example, to use a gzip filter for attributes, and double delta + gzip for coordinates and
 offsets, use the following arguments:
 
 ```
