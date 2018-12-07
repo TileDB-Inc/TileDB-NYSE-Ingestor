@@ -43,7 +43,7 @@
 #include <string>
 #include <tiledb/tiledb>
 
-enum class FileType : int { UNKNOWN, Master, Quote, Trade };
+enum class FileType : int { UNKNOWN, Master, Quote, Trade, OpenBook };
 
 namespace nyse {
 /**
@@ -123,7 +123,14 @@ public:
    */
   template <typename T>
   void appendBuffer(const std::string &fieldName, const T value,
-                    std::shared_ptr<buffer> buffer);
+                    std::shared_ptr<buffer> buffer) {
+    std::shared_ptr<std::vector<T>> values =
+        std::static_pointer_cast<std::vector<T>>(buffer->values);
+    if (buffer->offsets != nullptr) {
+      buffer->offsets->push_back(values->size());
+    }
+    values->push_back(value);
+  };
 
   /**
    * Parse a file in parallel to a buffer
@@ -136,7 +143,7 @@ public:
    */
   std::unordered_map<std::string, std::shared_ptr<nyse::buffer>>
   parseFileToBuffer(
-      const std::string &file_uri,
+      const std::string file_uri,
       std::unordered_map<std::string, std::string> staticColumns,
       std::shared_ptr<std::unordered_map<
           std::string, std::pair<std::string, std::unordered_map<
@@ -153,6 +160,12 @@ public:
 
   // void read(void *subarray);
   virtual uint64_t readSample(std::string outfile, std::string delimiter) = 0;
+
+  /**
+   * Get array type
+   * @return
+   */
+  FileType type() const;
 
 protected:
   /**
@@ -193,7 +206,7 @@ protected:
 
   char delimiter;
 
-  FileType type;
+  FileType type_;
 
   std::shared_timed_mutex mapColumnsMutex;
   std::unordered_map<

@@ -62,7 +62,7 @@ set(EP_INSTALL_PREFIX "${EP_BASE}/install")
 # Regular build
 ############################################################
 
-add_executable(nyse_ingestor src/main.cc src/Master.cc src/Quote.cc src/Trade.cc src/Array.cc)
+add_executable(nyse_ingestor src/main.cc src/Master.cc src/Quote.cc src/Trade.cc src/Array.cc src/OpenBook.cc)
 
 target_include_directories(nyse_ingestor PUBLIC src)
 
@@ -73,7 +73,7 @@ find_package(Date_EP REQUIRED)
 target_link_libraries(nyse_ingestor dl ${CMAKE_THREAD_LIBS_INIT} Date::tz TBB::tbb)
 
 if (TARGET TileDB::tiledb_static)
-    target_link_libraries(nyse_ingestor TileDB::tiledb_static)
+    target_link_libraries(nyse_ingestor TileDB::tiledb_static idn2 nghttp2)
 else()
     target_link_libraries(nyse_ingestor TileDB::tiledb_shared)
 endif()

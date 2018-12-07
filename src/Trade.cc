@@ -41,7 +41,7 @@ nyse::Trade::Trade(std::string array_name, std::string master_file,
   tiledb::Config config;
   config.set("sm.dedup_coords", "true");
   this->ctx = std::make_shared<tiledb::Context>(config);
-  this->type = FileType::Trade;
+  this->type_ = FileType::Trade;
 
   this->master_file = master_file;
 }

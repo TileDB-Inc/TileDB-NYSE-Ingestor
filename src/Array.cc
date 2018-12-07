@@ -32,6 +32,7 @@
  */
 
 #include "Array.h"
+#include "OpenBook.h"
 #include "buffer.h"
 #include <CLI11.hpp>
 #include <ProgressBar.hpp>
@@ -46,6 +47,8 @@
 #ifdef __LINUX__
 #include <sys/ioctl.h>
 #endif
+
+FileType nyse::Array::type() const { return this->type_; }
 
 std::vector<std::string> nyse::Array::parseHeader(std::string headerLine,
                                                   char delimiter) {
@@ -91,11 +94,12 @@ std::shared_ptr<void> nyse::createBuffer(tiledb_datatype_t datatype) {
   case tiledb_datatype_t::TILEDB_ANY:
     return std::make_shared<std::vector<int8_t>>();
   }
+  return std::make_shared<std::vector<int8_t>>();
 }
 
 static std::unordered_map<std::string, std::shared_ptr<nyse::buffer>>
 staticLoadJob(
-    nyse::Array *array, const std::string &file_uri,
+    nyse::Array *array, const std::string file_uri,
     std::unordered_map<std::string, std::string> staticColumns,
     std::shared_ptr<std::unordered_map<
         std::string,
@@ -103,13 +107,19 @@ staticLoadJob(
         mapColumns,
     std::set<std::string> *dimensionFields, char delimiter,
     tiledb::ArraySchema &arraySchema) {
+
+  if (array->type() == FileType::OpenBook) {
+    return reinterpret_cast<nyse::OpenBook *>(array)->parseBinaryFileToBuffer(
+        file_uri, staticColumns, mapColumns, dimensionFields, delimiter,
+        arraySchema);
+  }
   return array->parseFileToBuffer(file_uri, staticColumns, mapColumns,
                                   dimensionFields, delimiter, arraySchema);
 }
 
 std::unordered_map<std::string, std::shared_ptr<nyse::buffer>>
 nyse::Array::parseFileToBuffer(
-    const std::string &file_uri,
+    const std::string file_uri,
     std::unordered_map<std::string, std::string> staticColumns,
     std::shared_ptr<std::unordered_map<
         std::string,
@@ -243,7 +253,7 @@ nyse::Array::parseFileToBuffer(
           value = valueMap->second;
         }
       } else if (dimension.name() == "symbol_id") {
-        if (this->type == FileType::Master) {
+        if (this->type_ == FileType::Master) {
           value = std::to_string(totalRowsInFile);
         } else {
           std::cerr << "Error symbol_id unhandled in non master file"
@@ -353,6 +363,7 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter,
     // This needs locking!!
     results.push_back(staticLoadJob(this, file_uri, staticColumns, mapColumns,
                                     &dimensionFields, delimiter, arraySchema));
+    return 0;
   });
 
   for (auto &result : results) {
@@ -388,13 +399,18 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter,
     }
   }
 
-  if (submit_query() == tiledb::Query::Status::FAILED) {
-    std::cerr << "Query FAILED!!!!!" << std::endl;
+  try {
+    if (submit_query() == tiledb::Query::Status::FAILED) {
+      std::cerr << "Query FAILED!!!!!" << std::endl;
+    }
+
+    query->finalize();
+
+    array->close();
+  } catch (std::exception &e) {
+    std::cerr << __FILE__ << ":" << __LINE__ << " " << e.what() << std::endl;
+    return 1;
   }
-
-  query->finalize();
-
-  array->close();
 
   auto duration = std::chrono::duration_cast<std::chrono::seconds>(
       std::chrono::steady_clock::now() - startTime);
@@ -481,17 +497,6 @@ void nyse::Array::appendBuffer(const std::string &fieldName,
     return;
   }
   }
-}
-
-template <typename T>
-void nyse::Array::appendBuffer(const std::string &fieldName, const T value,
-                               std::shared_ptr<buffer> buffer) {
-  std::shared_ptr<std::vector<T>> values =
-      std::static_pointer_cast<std::vector<T>>(buffer->values);
-  if (buffer->offsets != nullptr) {
-    buffer->offsets->push_back(values->size());
-  }
-  values->push_back(value);
 }
 
 tiledb::Query::Status nyse::Array::submit_query() {

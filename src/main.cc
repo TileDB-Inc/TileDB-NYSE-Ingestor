@@ -32,14 +32,15 @@
  */
 
 #include "Master.h"
+#include "OpenBook.h"
 #include "Quote.h"
 #include "Trade.h"
-#include "utils.h"
 #include <CLI11.hpp>
 #include <iostream>
 #include <sstream>
 #include <thread>
 #include <tiledb/tiledb>
+#include <utils.h>
 
 std::istream &operator>>(std::istream &in, FileType &fileType) {
   std::string s;
@@ -50,6 +51,9 @@ std::istream &operator>>(std::istream &in, FileType &fileType) {
     fileType = FileType::Quote;
   } else if (s == "trade" || s == "Trade" || s == "TRADE") {
     fileType = FileType::Trade;
+  } else if (s == "openbook" || s == "Openbook" || s == "OpenBook" ||
+             s == "OPENBOOK") {
+    fileType = FileType::OpenBook;
   } else {
     fileType = FileType::UNKNOWN;
   }
@@ -79,7 +83,8 @@ int main(int argc, char **argv) {
 
   FileType fileType;
   app.add_set("--type", fileType,
-              {FileType::Master, FileType::Trade, FileType::Quote},
+              {FileType::Master, FileType::Trade, FileType::Quote,
+               FileType::OpenBook},
               "File type to ingest")
       ->type_name("FileType in {Master, Quote, Trade}")
       ->required(true);
@@ -125,9 +130,9 @@ int main(int argc, char **argv) {
   }
 
   if (fileType == FileType::UNKNOWN) {
-    std::cerr
-        << "Unknown filetype passed, must be one of {Master, Quote, Trade}"
-        << std::endl;
+    std::cerr << "Unknown filetype passed, must be one of {Master, Quote, "
+                 "Trade, OpenBook}"
+              << std::endl;
     return 1;
   }
 
@@ -150,6 +155,14 @@ int main(int argc, char **argv) {
     }
     array = std::make_unique<nyse::Trade>(arrayUri, masterFilename,
                                           delimiter.c_str()[0]);
+  } else if (fileType == FileType::OpenBook) {
+    if (masterFilename.empty() && !createArray) {
+      std::cerr << "--master_file is required for OpenBook array loading"
+                << std::endl;
+      return 1;
+    }
+    array = std::make_unique<nyse::OpenBook>(arrayUri, masterFilename,
+                                             delimiter.c_str()[0]);
   }
 
   if (createArray) {

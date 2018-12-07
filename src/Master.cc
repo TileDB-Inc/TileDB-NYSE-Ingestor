@@ -43,7 +43,7 @@ nyse::Master::Master(std::string array_name, char delimiter) {
   config.set("sm.dedup_coords", "true");
   this->ctx = std::make_shared<tiledb::Context>(config);
   this->delimiter = delimiter;
-  this->type = FileType::Master;
+  this->type_ = FileType::Master;
 }
 
 void nyse::Master::createArray(tiledb::FilterList coordinate_filter_list,
