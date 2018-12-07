@@ -66,8 +66,8 @@ void nyse::Trade::createArray(tiledb::FilterList coordinate_filter_list,
 
   tiledb::Domain domain(*ctx);
   // symbol_id
-  domain.add_dimension(tiledb::Dimension::create<uint64_t>(*ctx, "symbol_id",
-                                                           {{0, 10000}}, 100));
+  domain.add_dimension(
+      tiledb::Dimension::create<uint64_t>(*ctx, "symbol_id", {{0, 10000}}, 1));
 
   // time
   domain.add_dimension(tiledb::Dimension::create<uint64_t>(
