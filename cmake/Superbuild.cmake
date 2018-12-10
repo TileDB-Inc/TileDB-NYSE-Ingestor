@@ -45,6 +45,7 @@ set(INHERITED_CMAKE_ARGS
   -DCMAKE_INSTALL_PREFIX=${CMAKE_INSTALL_PREFIX}
   -DCMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}
   -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE}
+  -DTBB_SHARED=${TBB_SHARED}
   -DEP_BASE=${EP_BASE}
 )
 
@@ -55,6 +56,7 @@ set(INHERITED_CMAKE_ARGS
 # These includes modify the EXTERNAL_PROJECTS variable.
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/FindDate_EP.cmake)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/FindTBB_EP.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/FindTileDB_EP.cmake)
 
 ############################################################

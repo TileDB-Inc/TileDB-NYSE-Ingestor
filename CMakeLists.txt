@@ -12,6 +12,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 # Superbuild option must be on by default.
 option(SUPERBUILD "If true, perform a superbuild (builds all missing dependencies)." ON)
 option(CMAKE_IDE "(Used for CLion builds). Disables superbuild and sets the EP install dir." OFF)
+option(TBB_SHARED "If TBB is enabled, builds TBB as a shared library instead of static." OFF)
 
 # Release builds by default.
 if(NOT CMAKE_BUILD_TYPE)
@@ -19,11 +20,13 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 # Add some global compiler flags
-if (CMAKE_BUILD_TYPE MATCHES "Debug")
+#[[if (CMAKE_BUILD_TYPE MATCHES "Debug")
     add_compile_options(-DDEBUG -O0 -g3 -ggdb3 -gdwarf-3)
 elseif (CMAKE_BUILD_TYPE MATCHES "Release")
     add_compile_options(-DNDEBUG -O3)
-endif()
+endif()]]
+
+set(DEPS_NO_DEFAULT_PATH)
 
 ############################################################
 # Superbuild setup
@@ -63,10 +66,11 @@ add_executable(nyse_ingestor src/main.cc src/Master.cc src/Quote.cc src/Trade.cc
 
 target_include_directories(nyse_ingestor PUBLIC src)
 
+find_package(TBB_EP REQUIRED)
 find_package(TileDB_EP REQUIRED)
 find_package(Threads REQUIRED)
 find_package(Date_EP REQUIRED)
-target_link_libraries(nyse_ingestor dl ${CMAKE_THREAD_LIBS_INIT} Date::tz)
+target_link_libraries(nyse_ingestor dl ${CMAKE_THREAD_LIBS_INIT} Date::tz TBB::tbb)
 
 if (TARGET TileDB::tiledb_static)
     target_link_libraries(nyse_ingestor TileDB::tiledb_static)

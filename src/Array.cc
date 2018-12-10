@@ -35,9 +35,11 @@
 #include "buffer.h"
 #include <CLI11.hpp>
 #include <ProgressBar.hpp>
-#include <ThreadPool.h>
+//#include <ThreadPool.h>
 #include <chrono>
 #include <date/tz.h>
+#include <tbb/parallel_for_each.h>
+#include <tbb/task_scheduler_init.h>
 #include <tiledb/tiledb>
 #include <utils.h>
 
@@ -304,10 +306,9 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter,
                       uint64_t batchSize, uint32_t threads) {
   unsigned long totalRows = 0;
 
-  ThreadPool pool(threads);
-  std::vector<
-      std::future<std::unordered_map<std::string, std::shared_ptr<buffer>>>>
-      results;
+  tbb::task_scheduler_init init(threads);
+  std::vector<std::unordered_map<std::string, std::shared_ptr<buffer>>> results(
+      file_uris.size());
 
   array = std::make_unique<tiledb::Array>(*ctx, array_uri,
                                           tiledb_query_type_t::TILEDB_WRITE);
@@ -324,7 +325,9 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter,
 
   auto startTime = std::chrono::steady_clock::now();
 
-  for (const std::string &file_uri : file_uris) {
+  // for (const std::string &file_uri : file_uris) {
+  size_t i = 0;
+  tbb::parallel_for_each(file_uris, [&](const std::string &file_uri) {
     if (staticColumnsForFiles.find(file_uri) == staticColumnsForFiles.end()) {
       std::cerr << "File " << file_uri
                 << " missing static columns mapping!! Aborting!!" << std::endl;
@@ -344,36 +347,44 @@ int nyse::Array::load(const std::vector<std::string> file_uris, char delimiter,
           std::string,
           std::pair<std::string,
                     std::unordered_map<std::string, std::string> *>>>();
-    results.push_back(pool.enqueue(staticLoadJob, this, file_uri, staticColumns,
-                                   mapColumns, &dimensionFields, delimiter,
-                                   arraySchema));
-  }
+    /*results.push_back(pool.enqueue(staticLoadJob, this, file_uri,
+       staticColumns, mapColumns, &dimensionFields, delimiter, arraySchema));*/
+
+    // This needs locking!!
+    results.push_back(staticLoadJob(this, file_uri, staticColumns, mapColumns,
+                                    &dimensionFields, delimiter, arraySchema));
+  });
 
   for (auto &result : results) {
-    auto buffers = result.get();
-    for (auto entry : buffers) {
-      std::string bufferName = entry.first;
-      if (bufferName == TILEDB_COORDS) {
-        totalRows += std::static_pointer_cast<std::vector<uint64_t>>(
-                         entry.second->values)
-                         ->size() /
-                     dimensionFields.size();
-      }
-      auto globalBuffer = globalBuffers.find(bufferName);
-      if (globalBuffer != globalBuffers.end()) {
-        if (entry.second->offsets != nullptr) {
-          concatOffsets(globalBuffer->second->offsets, entry.second->offsets,
-                        globalBuffer->second->values, entry.second->datatype);
-          entry.second->offsets.reset();
+    try {
+      auto buffers = result;
+      for (auto entry : buffers) {
+        std::string bufferName = entry.first;
+        if (bufferName == TILEDB_COORDS) {
+          totalRows += std::static_pointer_cast<std::vector<uint64_t>>(
+                           entry.second->values)
+                           ->size() /
+                       dimensionFields.size();
         }
-        if (entry.second->values != nullptr) {
-          concatBuffers(globalBuffer->second->values, entry.second->values,
-                        entry.second->datatype);
-          entry.second->values.reset();
+        auto globalBuffer = globalBuffers.find(bufferName);
+        if (globalBuffer != globalBuffers.end()) {
+          if (entry.second->offsets != nullptr) {
+            concatOffsets(globalBuffer->second->offsets, entry.second->offsets,
+                          globalBuffer->second->values, entry.second->datatype);
+            entry.second->offsets.reset();
+          }
+          if (entry.second->values != nullptr) {
+            concatBuffers(globalBuffer->second->values, entry.second->values,
+                          entry.second->datatype);
+            entry.second->values.reset();
+          }
+        } else {
+          globalBuffers.emplace(bufferName, entry.second);
         }
-      } else {
-        globalBuffers.emplace(bufferName, entry.second);
       }
+    } catch (std::exception &e) {
+      std::cerr << __FILE__ << ":" << __LINE__ << " " << e.what() << std::endl;
+      return 1;
     }
   }
 
